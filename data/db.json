@@ -1,0 +1,22 @@
+{
+  "blogs": [
+    {
+      "title": "get free hosting",
+      "body": "with vercel get free react learn node",
+      "author": "Adam",
+      "id": 4
+    },
+    {
+      "title": "Rashmi",
+      "body": "Walking",
+      "author": "Adam",
+      "id": 7
+    },
+    {
+      "title": "make",
+      "body": "making life better",
+      "author": "youshi",
+      "id": 8
+    }
+  ]
+}
