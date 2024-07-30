@@ -4,8 +4,13 @@ import React, { useState } from 'react';
 import { getAuth, updateProfile } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db } from '/firebase';
-import { ClipLoader } from 'react-spinners';
-import Avatar from 'react-avatar';
+
+import dynamic from 'next/dynamic';
+const Avatar = dynamic(() => import('react-avatar'), { ssr: false });
+const ClipLoader = dynamic(() => import('react-spinners/ClipLoader'), { ssr: false });
+
+// import { ClipLoader } from 'react-spinners';
+// import Avatar from 'react-avatar';
 import MyConfessionList from '@components/MyConfessionList';
 
 export default function Profile() {
