@@ -1,34 +1,38 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getAuth, updateProfile } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '/firebase';
-
 import dynamic from 'next/dynamic';
+
 const Avatar = dynamic(() => import('react-avatar'), { ssr: false });
 const ClipLoader = dynamic(() => import('react-spinners/ClipLoader'), { ssr: false });
-
-// import { ClipLoader } from 'react-spinners';
-// import Avatar from 'react-avatar';
-import MyConfessionList from '@components/MyConfessionList';
+const MyConfessionList = dynamic(() => import('@components/MyConfessionList'), { ssr: false });
 
 export default function Profile() {
-  const auth = getAuth();
-  const user = auth.currentUser;
-  const [avatar, setAvatar] = useState(user?.photoURL || '');
+  const [auth, setAuth] = useState(null);
+  const [user, setUser] = useState(null);
+  const [avatar, setAvatar] = useState('');
   const [loading, setLoading] = useState(false);
   const storage = getStorage();
+
+  useEffect(() => {
+    const authInstance = getAuth();
+    const currentUser = authInstance.currentUser;
+    setAuth(authInstance);
+    setUser(currentUser);
+    setAvatar(currentUser?.photoURL || '');
+  }, []);
 
   const handleAvatarChange = async (avatarURL) => {
     setLoading(true);
 
     try {
-      // Update Firebase user profile
       await updateProfile(user, { photoURL: avatarURL });
       setAvatar(avatarURL);
 
-      // Update user confessions with new avatar URL
       const userConfessionsRef = collection(db, 'confessions');
       const q = query(userConfessionsRef, where('userId', '==', user.uid));
       const querySnapshot = await getDocs(q);

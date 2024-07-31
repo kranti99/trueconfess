@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { auth } from '/firebase';
-import { signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
-import AuthForm from '@components/AuthForm';
-import SearchComponent from '@components/header/SearchComponent';
-import { FaUserCircle } from 'react-icons/fa';
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { auth } from "/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import AuthForm from "@components/AuthForm";
+import SearchComponent from "@components/header/SearchComponent";
+import { FaUserCircle } from "react-icons/fa";
 
 export default function Header() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [showAuthForm, setShowAuthForm] = useState(false);
-  const [authMode, setAuthMode] = useState('login');
+  const [authMode, setAuthMode] = useState("login");
   const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function Header() {
   const handleLogout = async () => {
     await signOut(auth);
     setUser(null);
-    router.push('/');
+    router.push("/");
   };
 
   const closeModal = () => {
@@ -55,7 +55,10 @@ export default function Header() {
               />
               {showDropdown && (
                 <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg">
-                  <Link href="/profile" className="block px-4 py-2 hover:bg-gray-200">
+                  <Link
+                    href="/profile"
+                    className="block px-4 py-2 hover:bg-gray-200"
+                  >
                     View Profile
                   </Link>
                   <button
@@ -72,7 +75,7 @@ export default function Header() {
           <>
             <button
               onClick={() => {
-                setAuthMode('login');
+                setAuthMode("login");
                 setShowAuthForm(true);
               }}
               className="mr-4 hover:underline"
@@ -81,7 +84,7 @@ export default function Header() {
             </button>
             <button
               onClick={() => {
-                setAuthMode('signup');
+                setAuthMode("signup");
                 setShowAuthForm(true);
               }}
               className="bg-green-500 px-3 py-1 rounded hover:bg-green-700"

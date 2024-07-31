@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { auth } from '../firebase'; // Ensure you import the initialized auth instance
 
@@ -43,7 +43,6 @@ const withAuth = (Component) => {
     return <Component {...props} />;
   };
 
-  // Set a display name for the wrapped component for easier debugging
   AuthenticatedComponent.displayName = `withAuth(${Component.displayName || Component.name || 'Component'})`;
 
   return AuthenticatedComponent;

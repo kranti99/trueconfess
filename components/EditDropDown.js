@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { FaEllipsisV } from 'react-icons/fa';
-import Modal from '@components/modal'; // Assuming the Modal component from the previous implementation
+import React, { useState, useRef, useEffect } from "react";
+import { FaEllipsisV } from "react-icons/fa";
+import Modal from "@components/modal"; // Assuming the Modal component from the previous implementation
+import PropTypes from "prop-types";
 
 const EditDropDown = ({ onEdit, onDelete, itemId }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,10 +29,10 @@ const EditDropDown = ({ onEdit, onDelete, itemId }) => {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      document.addEventListener('mousedown', handleClickOutside);
+    if (typeof window !== "undefined") {
+      document.addEventListener("mousedown", handleClickOutside);
       return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener("mousedown", handleClickOutside);
       };
     }
   }, []);
@@ -84,6 +85,12 @@ const EditDropDown = ({ onEdit, onDelete, itemId }) => {
       </Modal>
     </div>
   );
+};
+
+EditDropDown.propTypes = {
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  itemId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 };
 
 export default EditDropDown;

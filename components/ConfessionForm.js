@@ -1,25 +1,23 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import dynamic from 'next/dynamic';
-import { getAuth } from 'firebase/auth';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '/firebase';
-import { FaCheckCircle } from 'react-icons/fa';
-import AuthForm from '@components/AuthForm';
+import React, { useState } from "react";
+import dynamic from "next/dynamic";
+import { getAuth } from "firebase/auth";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "/firebase";
+import { FaCheckCircle } from "react-icons/fa";
+import AuthForm from "@components/AuthForm";
 
 // Import ReactQuill dynamically
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
-import 'react-quill/dist/quill.bubble.css';
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+import "react-quill/dist/quill.bubble.css";
 
 // Import quill-emoji
-import 'quill-emoji/dist/quill-emoji.css';
-import { Quill } from 'react-quill';
-import Emoji from 'quill-emoji';
+import "quill-emoji/dist/quill-emoji.css";
 
 export default function ConfessionForm() {
-  const [content, setContent] = useState('');
-  const [title, setTitle] = useState('');
+  const [content, setContent] = useState("");
+  const [title, setTitle] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -34,131 +32,120 @@ export default function ConfessionForm() {
       return;
     }
     try {
-      await addDoc(collection(db, 'confessions'), {
+      await addDoc(collection(db, "confessions"), {
         title,
         content,
-        date: serverTimestamp(),
-        userId: user.uid,
-        nickname: isAnonymous ? 'Anonymous' : user.displayName || 'Anonymous',
-        likes: 0,
-        commentCount: 0,
+        isAnonymous,
+        author: isAnonymous ? "Anonymous" : user.displayName || "Anonymous",
+        timestamp: serverTimestamp(),
       });
-      setContent('');
-      setTitle('');
-      setShowForm(false);
       setShowSuccessMessage(true);
+      setTitle("");
+      setContent("");
+      setIsAnonymous(false);
       setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (error) {
-      console.error('Error adding confession: ', error);
+      console.error("Error adding confession: ", error);
     }
   };
 
-  const handleSaveDraft = async () => {
+  const saveDraft = async () => {
     if (!user) {
       setShowModal(true);
       return;
     }
     try {
-      await addDoc(collection(db, 'drafts'), {
+      await addDoc(collection(db, "drafts"), {
         title,
         content,
-        date: serverTimestamp(),
-        userId: user.uid,
-        nickname: isAnonymous ? 'Anonymous' : user.displayName || 'Anonymous',
-        likes: 0,
-        commentCount: 0,
-        isDraft: true,
+        isAnonymous,
+        author: isAnonymous ? "Anonymous" : user.displayName || "Anonymous",
+        timestamp: serverTimestamp(),
       });
-      setContent('');
-      setTitle('');
-      setShowForm(false);
-      setShowSuccessMessage(true);
-      setTimeout(() => setShowSuccessMessage(false), 3000);
+      setTitle("");
+      setContent("");
+      setIsAnonymous(false);
     } catch (error) {
-      console.error('Error saving draft: ', error);
+      console.error("Error saving draft: ", error);
     }
   };
 
   const modules = {
     toolbar: [
-      [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-      [{ size: [] }],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'align': [] }],
-      ['emoji'],
-      ['clean']
+      [{ header: "1" }, { header: "2" }, { font: [] }],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["bold", "italic", "underline", "strike", "blockquote"],
+      [{ color: [] }, { background: [] }],
+      [{ align: [] }],
+      ["emoji"],
+      ["clean"],
     ],
-    "emoji-toolbar": true,
-    "emoji-textarea": true,
-    "emoji-shortname": true,
   };
 
   return (
-    <div className="p-4 bg-gray-800 rounded-lg text-white">
-      {!showForm ? (
-        <textarea
-          onClick={() => {
-            if (!user) {
-              setShowModal(true);
-              return;
-            }
-            setShowForm(true);
-          }}
-          placeholder="Post a confession..."
-          className="w-full p-2 border border-gray-300 rounded bg-gray-700 text-white"
-        />
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div>
+      {showSuccessMessage && (
+        <div className="text-green-600">
+          <FaCheckCircle /> Confession submitted successfully!
+        </div>
+      )}
+      {showModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 right-4 text-gray-700"
+            >
+              &times;
+            </button>
+            <AuthForm />
+          </div>
+        </div>
+      )}
+      <button onClick={() => setShowForm(!showForm)} className="my-4">
+        {showForm ? "Cancel" : "Add Confession"}
+      </button>
+      {showForm && (
+        <form onSubmit={handleSubmit} className="my-4">
           <input
             type="text"
+            placeholder="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title"
-            className="w-full p-2 focus:border-none border-b border-b-gray-300 bg-transparent rounded text-white placeholder-gray-300::placeholder"
-            required
+            className="border-b w-full mb-4 p-2"
           />
-          <div className="relative">
-            <ReactQuill
-              value={content}
-              onChange={setContent}
-              placeholder="Write your confession..."
-              className="bg-gray-800 text-white placeholder-gray-300::placeholder"
-              theme="bubble"
-              modules={modules}
-            />
-          </div>
-          <div className="flex items-center">
+          <ReactQuill
+            value={content}
+            onChange={setContent}
+            theme="bubble"
+            modules={modules}
+            className="mb-4"
+          />
+          <label className="flex items-center mb-4">
             <input
               type="checkbox"
-              id="anonymous"
               checked={isAnonymous}
               onChange={() => setIsAnonymous(!isAnonymous)}
               className="mr-2"
             />
-            <label htmlFor="anonymous">Post anonymously</label>
-          </div>
-          <div className="flex justify-between">
+            Submit anonymously
+          </label>
+          <div className="flex space-x-4">
             <button
               type="button"
-              onClick={handleSaveDraft}
-              className="px-4 py-2 bg-gray-500 text-white rounded"
+              onClick={saveDraft}
+              className="px-4 py-2 bg-gray-600 text-white rounded"
             >
-              Save Draft
+              Save draft
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
-              Post
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+            >
+              Submit
             </button>
           </div>
         </form>
-      )}
-      {showModal && <AuthForm closeModal={() => setShowModal(false)} />}
-      {showSuccessMessage && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded flex items-center">
-          <FaCheckCircle className="mr-2" />
-          <span>Confession posted successfully!</span>
-        </div>
       )}
     </div>
   );

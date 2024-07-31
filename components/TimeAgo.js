@@ -1,4 +1,7 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 
 const TimeAgo = ({ timestamp }) => {
   const [timeAgo, setTimeAgo] = useState('');
@@ -57,6 +60,17 @@ const TimeAgo = ({ timestamp }) => {
   }, [timestamp]);
 
   return <span>{timeAgo}</span>;
+};
+
+TimeAgo.propTypes = {
+  timestamp: PropTypes.oneOfType([
+    PropTypes.instanceOf(Date),
+    PropTypes.shape({
+      toDate: PropTypes.func,
+      seconds: PropTypes.number,
+    }),
+    PropTypes.string,
+  ]).isRequired,
 };
 
 export default TimeAgo;
