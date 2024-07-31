@@ -20,8 +20,8 @@ import { EmojiBlot, ShortNameEmoji, ToolbarEmoji } from 'quill-emoji';
 
 const modules = {
   toolbar: [
-    [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
     ['bold', 'italic', 'underline', 'strike', 'blockquote'],
     [{ 'color': [] }, { 'background': [] }],
     [{ 'align': [] }],
@@ -64,6 +64,13 @@ export default function MyConfessionList({ user }) {
 
   const handleDelete = async (id) => {
     try {
+      // Delete all comments related to the confession
+      const commentsQuery = query(collection(db, 'confessions', id, 'comments'));
+      const commentsSnapshot = await getDocs(commentsQuery);
+      const deleteCommentPromises = commentsSnapshot.docs.map((commentDoc) => deleteDoc(commentDoc.ref));
+      await Promise.all(deleteCommentPromises);
+
+      // Delete the confession
       await deleteDoc(doc(db, 'confessions', id));
       setConfessions(confessions.filter((confession) => confession.id !== id));
       setShowSuccessMessage(true);

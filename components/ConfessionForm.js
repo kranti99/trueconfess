@@ -8,10 +8,12 @@ import { FaCheckCircle } from 'react-icons/fa';
 import AuthForm from '@components/AuthForm';
 import 'react-quill/dist/quill.bubble.css';
 import 'quill-emoji/dist/quill-emoji.css';
+import * as Emoji from "quill-emoji";
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 export default function ConfessionForm() {
+  
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -118,18 +120,19 @@ export default function ConfessionForm() {
               value={content}
               onChange={setContent}
               placeholder="Write your confession..."
-              className="bg-gray-800 text-white"
+              className="bg-gray-800 text-white placeholder:text-slate-400 placeholder:italic"
               theme="bubble"
               modules={modules}
+              
             />
           </div>
-          <div className="flex items-center">
+          <div className="flex">
             <input
               type="checkbox"
               id="anonymous"
               checked={isAnonymous}
               onChange={() => setIsAnonymous(!isAnonymous)}
-              className="mr-2"
+              className="mr-2 w-24"
             />
             <label htmlFor="anonymous">Post anonymously</label>
           </div>

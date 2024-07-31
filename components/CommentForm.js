@@ -1,18 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import { db } from '/firebase';
 
 import AuthForm from '@components/AuthForm';
+import * as Emoji from "quill-emoji";
 
 import 'react-quill/dist/quill.bubble.css';
 import 'quill-emoji/dist/quill-emoji.css';
 import { FaCheckCircle } from 'react-icons/fa';
-import { Quill } from 'react-quill';
-import { EmojiBlot, ShortNameEmoji, ToolbarEmoji } from 'quill-emoji';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
@@ -23,6 +22,25 @@ export default function CommentForm({ confessionId, replyTo }) {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const auth = getAuth();
   const user = auth.currentUser;
+
+  useEffect(() => {
+    let Quill;
+    let EmojiBlot;
+    let ShortNameEmoji;
+    let ToolbarEmoji;
+
+    if (typeof window !== 'undefined') {
+      Quill = require('react-quill').Quill;
+      EmojiBlot = require('quill-emoji').EmojiBlot;
+      ShortNameEmoji = require('quill-emoji').ShortNameEmoji;
+      ToolbarEmoji = require('quill-emoji').ToolbarEmoji;
+
+      // Register the emoji module with Quill
+      if (Quill) {
+        Quill.register("modules/emoji", Emoji);
+      }
+    }
+  }, []);
 
   const publishComment = async () => {
     if (!user) {
@@ -51,17 +69,17 @@ export default function CommentForm({ confessionId, replyTo }) {
 
   const modules = {
     toolbar: [
-      [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
       [{ 'color': [] }, { 'background': [] }],
       [{ 'align': [] }],
       ['emoji'],
       ['clean']
     ],
-    "emoji-toolbar": true,
-    "emoji-textarea": true,
-    "emoji-shortname": true,
+    'emoji-toolbar': true,
+    'emoji-textarea': true,
+    'emoji-shortname': true,
   };
 
   return (

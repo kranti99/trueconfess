@@ -81,7 +81,7 @@ const SearchComponent = () => {
   };
 
   return (
-    <div className="relative flex items-center w-full max-w-lg mx-auto" ref={searchRef}>
+    <div className="relative flex items-center w-full max-w-lg mx-auto z-40 " ref={searchRef}>
       <div className="relative w-full">
         <input
           type="text"
