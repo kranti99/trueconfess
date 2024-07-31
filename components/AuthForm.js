@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getAuth, sendPasswordResetEmail, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, sendPasswordResetEmail, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 export default function AuthForm({ closeModal, mode }) {
   const [email, setEmail] = useState('');
@@ -19,7 +19,7 @@ export default function AuthForm({ closeModal, mode }) {
     try {
       if (mode === 'signup') {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await userCredential.user.updateProfile({ displayName: username });
+        await updateProfile(userCredential.user, { displayName: username });
         setMessage('Sign up successful!');
       } else {
         await signInWithEmailAndPassword(auth, email, password);
@@ -40,7 +40,6 @@ export default function AuthForm({ closeModal, mode }) {
     try {
       await sendPasswordResetEmail(auth, email);
       setMessage('Password reset email sent');
-      setIsError(false);
     } catch (error) {
       setIsError(true);
       setMessage(error.message);
@@ -105,7 +104,10 @@ export default function AuthForm({ closeModal, mode }) {
           </button>
         )}
         {!isForgotPassword && (
-          <button onClick={() => setIsForgotPassword(false)} className="mt-4 text-accent hover:underline">
+          <button
+            onClick={() => setIsForgotPassword(false)}
+            className="mt-4 text-accent hover:underline"
+          >
             {mode === 'signup' ? 'Already have an account? Login' : "Don't have an account? Sign Up"}
           </button>
         )}
