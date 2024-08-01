@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, increment, setDoc, deleteField } from 'firebase/firestore';
 import { db } from '/firebase';
 import CommentList from '@components/CommentList';
 import CommentForm from '@components/CommentForm';
@@ -11,6 +11,7 @@ import Avatar from 'react-avatar';
 import { FaThumbsUp, FaComment } from 'react-icons/fa';
 import TimeAgo from '@components/TimeAgo';
 import parse from 'html-react-parser';
+import { getAuth } from 'firebase/auth';
 
 export default function ConfessionDetail() {
   const pathname = usePathname();
@@ -18,7 +19,10 @@ export default function ConfessionDetail() {
   const [confession, setConfession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const [userLikes, setUserLikes] = useState({});
+  const auth = getAuth();
+  const user = auth.currentUser;
+
   const id = pathname.split('/').pop(); // Extract the id from the pathname
 
   useEffect(() => {
@@ -48,6 +52,56 @@ export default function ConfessionDetail() {
     fetchConfession();
   }, [id]);
 
+  useEffect(() => {
+    if (user) {
+      const fetchUserLikes = async () => {
+        const userLikesRef = doc(db, 'users', user.uid);
+        const userLikesSnap = await getDoc(userLikesRef);
+        if (userLikesSnap.exists()) {
+          setUserLikes(userLikesSnap.data().likes || {});
+        }
+      };
+
+      fetchUserLikes();
+    }
+  }, [user]);
+
+  const handleLike = async () => {
+    if (!userLikes[id]) {
+      try {
+        const confessionRef = doc(db, 'confessions', id);
+        await updateDoc(confessionRef, {
+          likes: increment(1),
+        });
+        const userLikesRef = doc(db, 'users', user.uid);
+        await updateDoc(userLikesRef, {
+          [`likes.${id}`]: true,
+        });
+        setUserLikes((prevLikes) => ({ ...prevLikes, [id]: true }));
+      } catch (error) {
+        console.error('Error liking confession:', error);
+      }
+    } else {
+      try {
+        const confessionRef = doc(db, 'confessions', id);
+        await updateDoc(confessionRef, {
+          likes: increment(-1),
+        });
+        const userLikesRef = doc(db, 'users', user.uid);
+        await updateDoc(userLikesRef, {
+          [`likes.${id}`]: deleteField(),
+        });
+        setUserLikes((prevLikes) => {
+          const updatedLikes = { ...prevLikes };
+          delete updatedLikes[id];
+          return updatedLikes;
+        });
+      } catch (error) {
+        console.error('Error unliking confession:', error);
+      }
+    }
+  };
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
@@ -76,10 +130,13 @@ export default function ConfessionDetail() {
             {parse(confession.content)}
           </div>
           <div className="text-sm text-gray-400 flex space-x-4">
-            <span className="flex items-center space-x-1">
+            <button
+              className={`flex items-center space-x-1 ${userLikes[id] ? 'text-blue-500' : 'text-gray-400'} hover:text-white`}
+              onClick={handleLike}
+            >
               <FaThumbsUp />
               <span>{confession.likes}</span>
-            </span>
+            </button>
             <span className="flex items-center space-x-1">
               <FaComment />
               <span>{confession.commentCount}</span>

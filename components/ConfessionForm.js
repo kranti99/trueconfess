@@ -123,18 +123,17 @@ export default function ConfessionForm() {
               className="bg-gray-800 text-white placeholder:text-slate-400 placeholder:italic"
               theme="bubble"
               modules={modules}
-              
             />
           </div>
-          <div className="flex">
+          <div className="flex items-center">
             <input
               type="checkbox"
               id="anonymous"
               checked={isAnonymous}
               onChange={() => setIsAnonymous(!isAnonymous)}
-              className="mr-2 w-24"
+              className="mr-2"
             />
-            <label htmlFor="anonymous">Post anonymously</label>
+            <label htmlFor="anonymous" className="cursor-pointer">Post anonymously</label>
           </div>
           <div className="flex justify-between">
             <button
@@ -148,12 +147,7 @@ export default function ConfessionForm() {
               Post Confession
             </button>
           </div>
-          {showSuccessMessage && (
-            <div className="flex items-center mt-4 text-green-500">
-              <FaCheckCircle className="mr-2" />
-              Confession saved successfully!
-            </div>
-          )}
+          
         </form>
       )}
       {showModal && (
@@ -164,6 +158,12 @@ export default function ConfessionForm() {
           </div>
         </div>
       )}
+      {showSuccessMessage && (
+            <div className="fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded flex items-center">
+              <FaCheckCircle className="mr-2" />
+              <span>Comment posted successfully!</span>
+            </div>
+          )}
     </div>
   );
 }

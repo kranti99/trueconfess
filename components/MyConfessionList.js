@@ -41,6 +41,9 @@ export default function MyConfessionList({ user }) {
   const [loading, setLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showMore, setShowMore] = useState({}); // State to control "Read more" / "Read less" functionality
+  const [sortType, setSortType] = useState('mostRecent'); // State for sorting type
+  const [displayName, setDisplayName] = useState('username'); // State for username or anonymous display
+  const [editingDisplayName, setEditingDisplayName] = useState('username'); // State for editing display name
 
   useEffect(() => {
     const fetchUserConfessions = async () => {
@@ -80,22 +83,24 @@ export default function MyConfessionList({ user }) {
     }
   };
 
-  const handleEdit = (id, title, content) => {
+  const handleEdit = (id, title, content, displayName) => {
     setEditingConfessionId(id);
     setEditingTitle(title);
     setEditingContent(content);
+    setEditingDisplayName(displayName);
   };
 
   const handleUpdate = async (id) => {
     try {
       const confessionDoc = doc(db, 'confessions', id);
-      await updateDoc(confessionDoc, { title: editingTitle, content: editingContent });
+      await updateDoc(confessionDoc, { title: editingTitle, content: editingContent, displayName: editingDisplayName });
       setConfessions(confessions.map((confession) =>
-        (confession.id === id ? { ...confession, title: editingTitle, content: editingContent } : confession)
+        (confession.id === id ? { ...confession, title: editingTitle, content: editingContent, displayName: editingDisplayName } : confession)
       ));
       setEditingConfessionId(null);
       setEditingTitle('');
       setEditingContent('');
+      setEditingDisplayName('username');
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (error) {
@@ -107,18 +112,46 @@ export default function MyConfessionList({ user }) {
     setShowMore((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const sortConfessions = (confessions, type) => {
+    if (type === 'mostRecent') {
+      return confessions.sort((a, b) => b.date - a.date);
+    } else if (type === 'mostCommented') {
+      return confessions.sort((a, b) => b.commentCount - a.commentCount);
+    }
+    return confessions;
+  };
+
+  const sortedConfessions = sortConfessions([...confessions], sortType);
+
+  const handleSortChange = (event) => {
+    setSortType(event.target.value);
+  };
+
   return (
     <div>
-      <h2 className="text-2xl font-semibold mt-8">My Confessions</h2>
+      <div className="flex justify-between items-center mt-8">
+        <h2 className="text-2xl font-semibold">My Confessions</h2>
+        <div className="flex items-center">
+          <span className="text-gray-400 mr-2">Sort by:</span>
+          <select
+            className="px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none"
+            value={sortType}
+            onChange={handleSortChange}
+          >
+            <option value="mostRecent">Most Recent</option>
+            <option value="mostCommented">Most Commented</option>
+          </select>
+        </div>
+      </div>
       {confessions.length === 0 ? (
         <p>No confessions yet.</p>
       ) : (
         <ul className="space-y-4 list-none">
-          {confessions.map((confession) => (
+          {sortedConfessions.map((confession) => (
             <li key={confession.id} className="p-4 border border-gray-300 rounded shadow-sm relative">
               <div className="absolute right-4 top-4">
                 <EditDropDown 
-                  onEdit={() => handleEdit(confession.id, confession.title, confession.content)}
+                  onEdit={() => handleEdit(confession.id, confession.title, confession.content, confession.displayName)}
                   onDelete={() => handleDelete(confession.id)}
                   itemId={confession.id}
                 />
@@ -133,6 +166,14 @@ export default function MyConfessionList({ user }) {
                     className="w-full p-2 border-b border-white mb-2 bg-black" // Black title field with border-bottom
                   />
                   <ReactQuill value={editingContent} onChange={setEditingContent} modules={modules} />
+                  <select 
+                    value={editingDisplayName} 
+                    onChange={(e) => setEditingDisplayName(e.target.value)} 
+                    className="mt-2 p-2 rounded bg-gray-700 text-white"
+                  >
+                    <option value="username">Username</option>
+                    <option value="anonymous">Anonymous</option>
+                  </select>
                   <button 
                     onClick={() => handleUpdate(confession.id)} 
                     className="text-blue-500 hover:underline mt-2 block"
@@ -149,9 +190,9 @@ export default function MyConfessionList({ user }) {
               ) : (
                 <>
                   <Link href={`/confession/${confession.id}`}>
-                      <h3 className="text-xl font-semibold border-b border-black pb-1 cursor-pointer">
-                        {confession.title}
-                      </h3>
+                    <h3 className="text-xl font-semibold border-b border-black pb-1 cursor-pointer">
+                      {confession.title}
+                    </h3>
                   </Link>
                   <p>
                     {showMore[confession.id] || confession.content.length < 200
@@ -167,7 +208,9 @@ export default function MyConfessionList({ user }) {
                     </button>
                   )}
                   <div className="text-sm text-gray-500 mt-2">
-                    <span>Likes: {confession.likes}</span> | <span> <Link href={`/confession/${confession.id}`}>Comments: {confession.commentCount}</Link></span>
+                    <span>Posted as: {confession.nickname === 'Anonymous' ? 'Anonymous' : user.displayName}</span>
+                    <span> | Likes: {confession.likes}</span>
+                    <span> | <Link href={`/confession/${confession.id}`}>Comments: {confession.commentCount}</Link></span>
                   </div>
                 </>
               )}
@@ -175,10 +218,15 @@ export default function MyConfessionList({ user }) {
           ))}
         </ul>
       )}
+      {loading && (
+        <div className="flex justify-center mt-4">
+          <ClipLoader color="#000" loading={loading} size={50} />
+        </div>
+      )}
       {showSuccessMessage && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded flex items-center">
-          <FaCheckCircle className="mr-2" />
-          <span>Action completed successfully!</span>
+        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow">
+          <FaCheckCircle className="inline-block mr-2" />
+          Success!
         </div>
       )}
     </div>

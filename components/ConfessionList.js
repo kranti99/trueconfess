@@ -13,6 +13,7 @@ const TimeAgo = dynamic(() => import("./TimeAgo"), { ssr: false });
 
 export default function ConfessionList() {
   const [confessions, setConfessions] = useState([]);
+  const [sortType, setSortType] = useState('mostRecent');
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -33,6 +34,21 @@ export default function ConfessionList() {
     }
   }, []);
 
+  const sortConfessions = (confessions, type) => {
+    if (type === 'mostRecent') {
+      return confessions.sort((a, b) => b.date - a.date);
+    } else if (type === 'mostCommented') {
+      return confessions.sort((a, b) => b.commentCount - a.commentCount);
+    }
+    return confessions;
+  };
+
+  const sortedConfessions = sortConfessions([...confessions], sortType);
+
+  const handleSortChange = (event) => {
+    setSortType(event.target.value);
+  };
+
   const truncateContent = (content, maxLength) => {
     if (content.length > maxLength) {
       return content.substring(0, maxLength) + "...";
@@ -42,38 +58,48 @@ export default function ConfessionList() {
 
   return (
     <div className="space-y-6 p-4 bg-gray-900 text-white">
-      {confessions.map((confession) => (
+      <div className="flex justify-end space-x-4 mb-4 items-center">
+        <span className="text-gray-400">Sort by:</span>
+        <select
+          className="px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none"
+          value={sortType}
+          onChange={handleSortChange}
+        >
+          <option value="mostRecent">Most Recent</option>
+          <option value="mostCommented">Most Commented</option>
+        </select>
+      </div>
+      {sortedConfessions.map((confession) => (
         <Link
           href={`/confession/${confession.id}`}
           key={confession.id}
           className="block p-4 bg-gray-800 rounded shadow-lg flex items-start space-x-4 hover:bg-gray-700 transition"
         >
           <Avatar
-            name={confession.anonymous ? "Anonymous User" : confession.nickname}
+            name={confession.isAnonymous ? "Anonymous User" : confession.nickname}
             src={confession.avatar || "/default-avatar.png"}
-            size="30"
+            size="50"
             round={true}
           />
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-2 text-sm text-gray-500">
-              <p className="font-bold text-base">
-                {confession.anonymous ? "Anonymous User" : confession.nickname}
-              </p>
+          <div className="flex-grow">
+            <h3 className="text-lg font-semibold text-white">{confession.title}</h3>
+            <div className="text-sm text-gray-400 flex items-center space-x-2">
+              <span>{confession.nickname}</span>
+              <span>•</span>
               <TimeAgo timestamp={confession.date} />
+              <span>•</span>
+              <span>{confession.commentCount} comments</span>
             </div>
-            <h2 className="text-lg font-semibold mb-2">{confession.title}</h2>
-            <div className="text-gray-300">
-              {parse(truncateContent(confession.content, 300))}
+            <div className="mt-2 text-gray-200 text-sm">
+              {parse(truncateContent(confession.content, 100))}
             </div>
-            <div className="text-sm text-gray-400 mt-2 flex space-x-4">
-              <span className="flex items-center space-x-1">
-                <FaThumbsUp />
-                <span>{confession.likes}</span>
-              </span>
-              <span className="flex items-center space-x-1">
-                <FaComment />
-                <span>{confession.commentCount}</span>
-              </span>
+            <div className="flex items-center space-x-4 mt-4">
+              <button className="flex items-center text-gray-400 hover:text-blue-500 transition">
+                <FaThumbsUp className="mr-1" /> {confession.likes}
+              </button>
+              <button className="flex items-center text-gray-400 hover:text-blue-500 transition">
+                <FaComment className="mr-1" /> {confession.commentCount}
+              </button>
             </div>
           </div>
         </Link>
