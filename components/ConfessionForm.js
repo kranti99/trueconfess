@@ -8,10 +8,9 @@ import { FaCheckCircle } from 'react-icons/fa';
 import AuthForm from '@components/AuthForm';
 import 'react-quill/dist/quill.bubble.css';
 import 'quill-emoji/dist/quill-emoji.css';
-// import * as Emoji from "quill-emoji";
+import { EmojiBlot, ShortNameEmoji, ToolbarEmoji } from 'quill-emoji';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
-const Emoji = dynamic(() => import('quill-emoji'), { ssr: false });
 
 export default function ConfessionForm() {
   
