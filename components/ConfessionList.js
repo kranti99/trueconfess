@@ -76,7 +76,7 @@ const ConfessionList = () => {
         > 
         
            <Link href={`/confession/${confession.id}`} className="">
-            <div className="p-6 border border-gray-700 rounded-lg shadow-md hover:bg-gray-800 transition duration-300">
+            <div className="p-6 border bg-neutral-950 border-gray-700 rounded-lg shadow-md hover:bg-gray-800 transition duration-300" style={{'background':'#262626'}}>
                 <div className="flex items-center mb-2">
                   <Avatar src={confession.avatar || '/default-avatar.png'} size="40" round />
                   <div className="ml-4">

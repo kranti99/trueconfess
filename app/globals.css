@@ -19,13 +19,7 @@
 body {
   font-family: Arial, sans-serif;
   line-height: 1.6;
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  @apply bg-dark-background text-dark-primary-text;
 }
 
 
@@ -82,7 +76,7 @@ li {
 
 /* Links */
 a {
-  color: #007bff;
+  @apply text-dark-accent;
   text-decoration: none;
 }
 /* Forms */

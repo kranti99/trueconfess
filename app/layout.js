@@ -2,6 +2,7 @@ import React from 'react';
 import { Inter } from "next/font/google";
 import Header from "../components/header/page";
 import Footer from "../components/footer/page";
+import LeftSidebar from '../components/LeftSidebar';
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -16,7 +17,10 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={inter.className}>
         <Header />
-        <main className="container mx-auto px-4 py-8">{children}</main>
+        <div className='relative flex justify-center'>
+        <LeftSidebar />
+        <main className="container max-w-3xl mx-4 px-4 py-12">{children}</main>
+        </div>
         <div id="modal-root"></div>
         <Footer />
       </body>

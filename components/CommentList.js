@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { collection, query, onSnapshot, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, deleteDoc, doc, setDoc } from 'firebase/firestore';
 import { db } from '/firebase';
 import { getAuth } from 'firebase/auth';
 import TimeAgo from './TimeAgo';
@@ -13,8 +13,6 @@ import { FaCheckCircle, FaReply } from 'react-icons/fa';
 
 import 'react-quill/dist/quill.bubble.css';
 import 'quill-emoji/dist/quill-emoji.css';
-import { Quill } from 'react-quill';
-import { EmojiBlot, ShortNameEmoji, ToolbarEmoji } from 'quill-emoji';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
@@ -43,6 +41,7 @@ export default function CommentList({ confessionId }) {
   const [commentToDelete, setCommentToDelete] = useState(null);
   const [commenter, setCommenter] = useState('');
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -90,10 +89,10 @@ export default function CommentList({ confessionId }) {
       const replyRef = doc(collection(db, 'confessions', confessionId, 'comments'));
       const replyData = {
         content: replyContent,
-        userId: user.uid,
-        userEmail: user.email,
-        avatar: user.photoURL,
-        nickname: user.displayName,
+        userId: isAnonymous ? 'anonymous' : user.uid,
+        userEmail: isAnonymous ? 'anonymous' : user.email,
+        avatar: isAnonymous ? '/default-avatar.png' : user.photoURL,
+        nickname: isAnonymous ? 'Anonymous' : user.displayName,
         date: new Date(),
         parentId: replyTo,
         likes: 0,
@@ -167,6 +166,16 @@ export default function CommentList({ confessionId }) {
                 theme="bubble"
                 className="bg-gray-900 text-white rounded shadow-lg"
               />
+              <div className="flex items-center space-x-2 mt-2">
+                <input
+                  type="checkbox"
+                  id="anonymous"
+                  className="form-checkbox h-5 w-5 text-gray-600"
+                  checked={isAnonymous}
+                  onChange={(e) => setIsAnonymous(e.target.checked)}
+                />
+                <label htmlFor="anonymous" className="text-gray-300">Post as Anonymous</label>
+              </div>
               <div className="flex justify-end mt-2">
                 <button
                   className="px-4 py-2 bg-red-600 text-white rounded mr-2"
