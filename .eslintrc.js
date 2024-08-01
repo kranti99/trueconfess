@@ -30,4 +30,9 @@ module.exports = {
     'react/prop-types': 'off',
     'jsx-a11y/anchor-is-valid': 'off',
   },
+  settings: {
+    react: {
+      version: 'detect', // Automatically detect the React version
+    },
+  },
 };

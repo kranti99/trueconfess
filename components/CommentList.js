@@ -9,6 +9,7 @@ import Modal from '@components/modal';
 import EditDropDown from './EditDropDown';
 import parse from 'html-react-parser';
 import LikeButton from './LikeButton';
+import { FaCheckCircle, FaReply } from 'react-icons/fa';
 
 import 'react-quill/dist/quill.bubble.css';
 import 'quill-emoji/dist/quill-emoji.css';

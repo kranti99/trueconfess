@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { getAuth, signOut } from 'firebase/auth';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
+import Image from 'next/image';
+import Avatar from 'react-avatar';
 
 const ProfileDropdown = ({ user }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -16,11 +18,22 @@ const ProfileDropdown = ({ user }) => {
   return (
     <div className="relative">
       <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center">
-        <img
-          src={user ? user.photoURL : '/default-avatar.png'}
-          alt="avatar"
-          className="w-10 h-10 rounded-full"
-        />
+        {user && user.photoURL ? (
+          <Image
+            src={user.photoURL}
+            alt="avatar"
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
+        ) : (
+          <Avatar
+            name={user?.displayName || 'User'}
+            round={true}
+            size="40"
+            textSizeRatio={2}
+          />
+        )}
       </button>
       {dropdownOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
@@ -50,6 +63,7 @@ const ProfileDropdown = ({ user }) => {
 ProfileDropdown.propTypes = {
   user: PropTypes.shape({
     photoURL: PropTypes.string,
+    displayName: PropTypes.string,
   }),
 };
 
