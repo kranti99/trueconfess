@@ -11,7 +11,7 @@ import parse from "html-react-parser";
 const Avatar = dynamic(() => import("react-avatar"), { ssr: false });
 const TimeAgo = dynamic(() => import("./TimeAgo"), { ssr: false });
 
-export default function ConfessionList() {
+const ConfessionList = () => {
   const [confessions, setConfessions] = useState([]);
   const [sortType, setSortType] = useState('mostRecent');
 
@@ -61,49 +61,53 @@ export default function ConfessionList() {
       <div className="flex justify-end space-x-4 mb-4 items-center">
         <span className="text-gray-400">Sort by:</span>
         <select
-          className="px-4 py-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none"
           value={sortType}
           onChange={handleSortChange}
+          className="p-2 border border-gray-600 bg-gray-800 text-white rounded-lg focus:outline-none focus:border-blue-500 transition duration-300"
         >
           <option value="mostRecent">Most Recent</option>
           <option value="mostCommented">Most Commented</option>
         </select>
       </div>
       {sortedConfessions.map((confession) => (
-        <Link
-          href={`/confession/${confession.id}`}
+        <div
           key={confession.id}
-          className="block p-4 bg-gray-800 rounded shadow-lg flex items-start space-x-4 hover:bg-gray-700 transition"
+          className="p-6 border border-gray-700 rounded-lg shadow-md hover:bg-gray-800 transition duration-300"
         >
-          <Avatar
-            name={confession.isAnonymous ? "Anonymous User" : confession.nickname}
-            src={confession.avatar || "/default-avatar.png"}
-            size="50"
-            round={true}
-          />
-          <div className="flex-grow">
-            <h3 className="text-lg font-semibold text-white">{confession.title}</h3>
-            <div className="text-sm text-gray-400 flex items-center space-x-2">
-              <span>{confession.nickname}</span>
-              <span>•</span>
+          <div className="flex items-center mb-2">
+            <Avatar name={confession.nickname} size="40" round />
+            <div className="ml-4">
+              <h2 className="text-lg font-semibold">{confession.nickname}</h2>
               <TimeAgo timestamp={confession.date} />
-              <span>•</span>
-              <span>{confession.commentCount} comments</span>
-            </div>
-            <div className="mt-2 text-gray-200 text-sm">
-              {parse(truncateContent(confession.content, 100))}
-            </div>
-            <div className="flex items-center space-x-4 mt-4">
-              <button className="flex items-center text-gray-400 hover:text-blue-500 transition">
-                <FaThumbsUp className="mr-1" /> {confession.likes}
-              </button>
-              <button className="flex items-center text-gray-400 hover:text-blue-500 transition">
-                <FaComment className="mr-1" /> {confession.commentCount}
-              </button>
             </div>
           </div>
-        </Link>
+          <Link href={`/confessions/${confession.id}`}>
+            <h2 className="text-xl font-bold text-blue-500 hover:underline mb-4">
+              {confession.title}
+            </h2>
+          </Link>
+          <div className="text-gray-300 mb-4">
+            {parse(truncateContent(confession.content, 200))}
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4 text-gray-400">
+              <span className="flex items-center">
+                <FaThumbsUp className="mr-1" /> {confession.likes}
+              </span>
+              <span className="flex items-center">
+                <FaComment className="mr-1" /> {confession.commentCount}
+              </span>
+            </div>
+            <Link href={`/confessions/${confession.id}`}>
+              <button className="text-blue-500 hover:underline">
+                Read More
+              </button>
+            </Link>
+          </div>
+        </div>
       ))}
     </div>
   );
-}
+};
+
+export default ConfessionList;

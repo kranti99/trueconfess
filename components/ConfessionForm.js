@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -8,12 +9,11 @@ import { FaCheckCircle } from 'react-icons/fa';
 import AuthForm from '@components/AuthForm';
 import 'react-quill/dist/quill.bubble.css';
 import 'quill-emoji/dist/quill-emoji.css';
-import { EmojiBlot, ShortNameEmoji, ToolbarEmoji } from 'quill-emoji';
 
+// Load ReactQuill and quill-emoji dynamically, only on the client side
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
-export default function ConfessionForm() {
-  
+const ConfessionForm = () => {
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -22,6 +22,30 @@ export default function ConfessionForm() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const auth = getAuth();
   const user = auth.currentUser;
+
+  useEffect(() => {
+    let Quill;
+    let EmojiBlot;
+    let ShortNameEmoji;
+    let ToolbarEmoji;
+
+    // Ensure this code runs only on the client side
+    if (typeof window !== 'undefined') {
+      Quill = require('react-quill').Quill;
+      EmojiBlot = require('quill-emoji').EmojiBlot;
+      ShortNameEmoji = require('quill-emoji').ShortNameEmoji;
+      ToolbarEmoji = require('quill-emoji').ToolbarEmoji;
+
+      // Register the emoji module with Quill
+      if (Quill) {
+        Quill.register("modules/emoji", {
+          EmojiBlot,
+          ShortNameEmoji,
+          ToolbarEmoji,
+        });
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -147,7 +171,6 @@ export default function ConfessionForm() {
               Post Confession
             </button>
           </div>
-          
         </form>
       )}
       {showModal && (
@@ -159,11 +182,13 @@ export default function ConfessionForm() {
         </div>
       )}
       {showSuccessMessage && (
-            <div className="fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded flex items-center">
-              <FaCheckCircle className="mr-2" />
-              <span>Comment posted successfully!</span>
-            </div>
-          )}
+        <div className="fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded flex items-center">
+          <FaCheckCircle className="mr-2" />
+          <span>Comment posted successfully!</span>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default ConfessionForm;
