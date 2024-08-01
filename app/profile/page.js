@@ -15,20 +15,23 @@ export default function Profile() {
   const [auth, setAuth] = useState(null);
   const [user, setUser] = useState(null);
   const [avatar, setAvatar] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const storage = getStorage();
 
   useEffect(() => {
     const authInstance = getAuth();
-    const currentUser = authInstance.currentUser;
+    authInstance.onAuthStateChanged((currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        setAvatar(currentUser.photoURL || '');
+      }
+      setLoading(false);
+    });
     setAuth(authInstance);
-    setUser(currentUser);
-    setAvatar(currentUser?.photoURL || '');
   }, []);
 
   const handleAvatarChange = async (avatarURL) => {
     setLoading(true);
-
     try {
       await updateProfile(user, { photoURL: avatarURL });
       setAvatar(avatarURL);
@@ -52,8 +55,11 @@ export default function Profile() {
     if (!file) return;
 
     setLoading(true);
-
     try {
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const storageRef = ref(storage, `avatars/${user.uid}`);
       await uploadBytes(storageRef, file);
       const avatarURL = await getDownloadURL(storageRef);
@@ -66,6 +72,8 @@ export default function Profile() {
     }
   };
 
+  if (loading) return <p>Loading...</p>;
+
   if (!user) return <p>Please log in to view your profile.</p>;
 
   return (
@@ -74,7 +82,7 @@ export default function Profile() {
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
           <div className="relative">
-            <Avatar src={avatar || '/default-avatar.png'} size="100" round={true} />
+            <Avatar src={avatar || '/default-avatar.png'} size="100" round={true} className="object-cover"/>
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 rounded-full">
                 <ClipLoader color="#000" size={50} />

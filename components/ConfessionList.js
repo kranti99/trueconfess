@@ -57,7 +57,7 @@ const ConfessionList = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 bg-gray-900 text-white">
+    <div className="space-y-6 p-4 text-white">
       <div className="flex justify-end space-x-4 mb-4 items-center">
         <span className="text-gray-400">Sort by:</span>
         <select
@@ -70,40 +70,42 @@ const ConfessionList = () => {
         </select>
       </div>
       {sortedConfessions.map((confession) => (
+        
         <div
           key={confession.id}
-          className="p-6 border border-gray-700 rounded-lg shadow-md hover:bg-gray-800 transition duration-300"
-        >
-          <div className="flex items-center mb-2">
-            <Avatar name={confession.nickname} size="40" round />
-            <div className="ml-4">
-              <h2 className="text-lg font-semibold">{confession.nickname}</h2>
-              <TimeAgo timestamp={confession.date} />
-            </div>
-          </div>
-          <Link href={`/confessions/${confession.id}`}>
-            <h2 className="text-xl font-bold text-blue-500 hover:underline mb-4">
-              {confession.title}
-            </h2>
+        > 
+        
+           <Link href={`/confession/${confession.id}`} className="">
+            <div className="p-6 border border-gray-700 rounded-lg shadow-md hover:bg-gray-800 transition duration-300">
+                <div className="flex items-center mb-2">
+                  <Avatar src={confession.avatar || '/default-avatar.png'} size="40" round />
+                  <div className="ml-4">
+                    <h2 className="text-lg font-semibold">{confession.nickname}</h2>
+                    <TimeAgo timestamp={confession.date} />
+                  </div>
+                </div>
+                <Link href={`/confession/${confession.id}`}>
+                  <h2 className="text-xl font-bold text-blue-500 hover:underline mb-4">
+                    {confession.title}
+                  </h2>
+                </Link>
+                <div className="text-gray-300 mb-4">
+                  {parse(truncateContent(confession.content, 200))}
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-4 text-gray-400">
+                    <span className="flex items-center">
+                      <FaThumbsUp className="mr-1" /> {confession.likes}
+                    </span>
+                    <span className="flex items-center">
+                      <FaComment className="mr-1" /> {confession.commentCount}
+                    </span>
+                  </div>
+                  
+                </div>
+              </div>
           </Link>
-          <div className="text-gray-300 mb-4">
-            {parse(truncateContent(confession.content, 200))}
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4 text-gray-400">
-              <span className="flex items-center">
-                <FaThumbsUp className="mr-1" /> {confession.likes}
-              </span>
-              <span className="flex items-center">
-                <FaComment className="mr-1" /> {confession.commentCount}
-              </span>
-            </div>
-            <Link href={`/confessions/${confession.id}`}>
-              <button className="text-blue-500 hover:underline">
-                Read More
-              </button>
-            </Link>
-          </div>
+
         </div>
       ))}
     </div>

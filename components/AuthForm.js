@@ -47,7 +47,7 @@ export default function AuthForm({ closeModal, mode }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
       <div className="bg-dark p-4 rounded relative">
         <button onClick={closeModal} className="absolute top-2 right-2 text-light">X</button>
         <h1 className="text-xl mb-4 text-light">{mode === 'signup' ? 'Sign Up' : 'Login'}</h1>
