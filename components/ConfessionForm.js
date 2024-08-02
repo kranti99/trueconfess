@@ -116,7 +116,7 @@ const ConfessionForm = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-800 rounded-lg text-white shadow-md">
+    <div className="p-6 bg-dark-background-light rounded-lg text-white shadow-md">
       {!showForm ? (
         <textarea
           onClick={() => {

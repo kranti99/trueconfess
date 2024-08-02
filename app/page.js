@@ -9,7 +9,7 @@ export const metadata = {
 export default function Home() {
   return (
     <div className="relative flex justify-center">
-      <main className="container max-w-3xl mx-4 px-4 py-8">
+      <main>
         <h1 className="text-3xl font-bold my-4">Confessions</h1>
         <ConfessionForm />
         <ConfessionList />

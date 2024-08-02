@@ -86,7 +86,7 @@ const SearchComponent = () => {
         <input
           type="text"
           placeholder="Search"
-          className="bg-gray-900 text-white px-4 py-2 pl-10 rounded-full w-full border border-gray-700"
+          className="bg-dark-background text-white px-4 py-2 pl-10 rounded-full w-full border border-gray-700"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => setShowResults(true)}
