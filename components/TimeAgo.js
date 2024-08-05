@@ -59,7 +59,7 @@ const TimeAgo = ({ timestamp }) => {
     return () => clearInterval(intervalId);
   }, [timestamp]);
 
-  return <span>{timeAgo}</span>;
+  return <span className="text-sm">{timeAgo}</span>;
 };
 
 TimeAgo.propTypes = {
