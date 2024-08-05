@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { doc, getDoc, updateDoc, increment, setDoc, deleteField } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, increment, deleteField } from 'firebase/firestore';
 import { db } from '/firebase';
 import CommentList from '@components/CommentList';
 import CommentForm from '@components/CommentForm';
@@ -111,7 +111,7 @@ export default function ConfessionDetail() {
         <div className="p-6 bg-gray-800 rounded shadow-lg">
           <div className="flex items-start space-x-4 mb-4">
             <Avatar 
-              name={confession.anonymous ? 'Anonymous User' : confession.nickname} 
+              name={confession.anonymous ? 'A' : confession.nickname} 
               src={confession.avatar || '/default-avatar.png'} 
               size="50" 
               round={true} 
@@ -128,6 +128,16 @@ export default function ConfessionDetail() {
           </div>
           <div className="text-gray-300 mb-4">
             {parse(confession.content)}
+          </div>
+          <div className="text-sm text-gray-400 flex space-x-4 mb-4">
+            <div>
+              <strong>Categories: </strong>
+              {confession.categories?.join(', ') || 'None'}
+            </div>
+            <div>
+              <strong>Tags: </strong>
+              {confession.tags?.join(', ') || 'None'}
+            </div>
           </div>
           <div className="text-sm text-gray-400 flex space-x-4">
             <button

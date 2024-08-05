@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { getAuth } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '/firebase';
 import { FaCheckCircle } from 'react-icons/fa';
@@ -57,9 +57,16 @@ const ConfessionForm = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [tags, setTags] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState(null);
 
   const auth = getAuth();
-  const user = auth.currentUser;
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, [auth]);
 
   useEffect(() => {
     let Quill;
@@ -173,7 +180,7 @@ const ConfessionForm = () => {
   };
 
   return (
-    <div className="p-6 bg-dark-background-light rounded-lg text-white shadow-md max-w-3xl mx-auto">
+    <div className="p-6 bg-dark-background-light rounded-lg text-white shadow-md max-w-3xl mx-auto w-full	">
       {!showForm ? (
         <textarea
           onClick={() => {
@@ -223,18 +230,18 @@ const ConfessionForm = () => {
                 options={predefinedCategories}
                 onChange={setSelectedCategories}
                 value={selectedCategories}
-                placeholder="Select Categories"
                 isMulti
-                className="text-black"
+                placeholder="Select categories..."
+                className="text-dark"
               />
             </div>
             <div className="w-1/2">
               <CreatableSelect
                 isMulti
-                onChange={setTags}
                 value={tags}
-                placeholder="Add Tags"
-                className="text-black bg-black"
+                onChange={setTags}
+                placeholder="Add tags..."
+                className="text-dark"
               />
             </div>
           </div>
@@ -244,7 +251,7 @@ const ConfessionForm = () => {
               id="anonymous"
               checked={isAnonymous}
               onChange={() => setIsAnonymous(!isAnonymous)}
-              className="w-4 h-4 mb-0 text-blue-500 bg-gray-800 border-gray-700 focus:ring-blue-500 rounded transition duration-300"
+              className="form-checkbox h-4 w-4 mb-0 text-blue-500 bg-gray-800 border-gray-700 focus:ring-blue-500 rounded transition duration-300"
             />
             <label htmlFor="anonymous" className="text-gray-400">Post as Anonymous</label>
           </div>
