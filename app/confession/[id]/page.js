@@ -78,6 +78,10 @@ export default function ConfessionDetail() {
           [`likes.${id}`]: true,
         });
         setUserLikes((prevLikes) => ({ ...prevLikes, [id]: true }));
+        setConfession((prevConfession) => ({
+          ...prevConfession,
+          likes: prevConfession.likes + 1,
+        }));
       } catch (error) {
         console.error('Error liking confession:', error);
       }
@@ -96,6 +100,10 @@ export default function ConfessionDetail() {
           delete updatedLikes[id];
           return updatedLikes;
         });
+        setConfession((prevConfession) => ({
+          ...prevConfession,
+          likes: prevConfession.likes - 1,
+        }));
       } catch (error) {
         console.error('Error unliking confession:', error);
       }
@@ -106,55 +114,75 @@ export default function ConfessionDetail() {
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div className="space-y-4 p-4 bg-gray-900 text-white">
+    <div className="space-y-4 mt-16 text-white">
       {confession && (
-        <div className="p-6 bg-gray-800 rounded shadow-lg">
-          <div className="flex items-start space-x-4 mb-4">
-            <Avatar 
-              name={confession.anonymous ? 'A' : confession.nickname} 
-              src={confession.avatar || '/default-avatar.png'} 
-              size="50" 
-              round={true} 
-            />
-            <div>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <p className="font-bold text-base">
-                  {confession.anonymous ? 'Anonymous User' : confession.nickname}
-                </p>
-                <TimeAgo timestamp={confession.date} />
+        <>
+          <div className="p-10 bg-dark-background-light rounded shadow-lg">
+            <div className="flex items-start space-x-4 mb-4">
+              {!confession.anonymous && (
+                <Avatar 
+                  name={confession.nickname} 
+                  src={confession.avatar || '/default-avatar.png'} 
+                  size="50" 
+                  round={true} 
+                />
+              )}
+              <div>
+                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                  <p className="font-bold text-base">
+                    {confession.anonymous ? 'Anonymous User' : confession.nickname}
+                  </p>
+                  <TimeAgo timestamp={confession.date} />
+                </div>
+                <h2 className="text-xl font-semibold text-white mt-2">{confession.title}</h2>
               </div>
-              <h2 className="text-xl font-semibold text-white mt-2">{confession.title}</h2>
             </div>
-          </div>
-          <div className="text-gray-300 mb-4">
-            {parse(confession.content)}
-          </div>
-          <div className="text-sm text-gray-400 flex space-x-4 mb-4">
-            <div>
-              <strong>Categories: </strong>
-              {confession.categories?.join(', ') || 'None'}
+            <div className="text-gray-300 mb-4">
+              {parse(confession.content)}
             </div>
-            <div>
-              <strong>Tags: </strong>
-              {confession.tags?.join(', ') || 'None'}
+            <div className="text-sm text-gray-400 flex space-x-4 mb-4">
+              <div>
+                <strong>Categories: </strong>
+                {confession.categories?.map((cat) => (
+                  <a
+                    key={cat}
+                    href={`/category/${cat}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    {cat}
+                  </a>
+                )) || 'None'}
+              </div>
+              <div>
+                <strong>Tags: </strong>
+                {confession.tags?.map((tag) => (
+                  <a
+                    key={tag}
+                    href={`/tag/${tag}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    {tag}
+                  </a>
+                )) || 'None'}
+              </div>
             </div>
-          </div>
-          <div className="text-sm text-gray-400 flex space-x-4">
-            <button
-              className={`flex items-center space-x-1 ${userLikes[id] ? 'text-blue-500' : 'text-gray-400'} hover:text-white`}
-              onClick={handleLike}
-            >
-              <FaThumbsUp />
-              <span>{confession.likes}</span>
-            </button>
-            <span className="flex items-center space-x-1">
-              <FaComment />
-              <span>{confession.commentCount}</span>
-            </span>
+            <div className="text-sm text-gray-400 flex space-x-4">
+              <button
+                className={`flex items-center space-x-1 ${userLikes[id] ? 'text-blue-500' : 'text-gray-400'} hover:text-white`}
+                onClick={handleLike}
+              >
+                <FaThumbsUp />
+                <span>{confession.likes}</span>
+              </button>
+              <span className="flex items-center space-x-1">
+                <FaComment />
+                <span>{confession.commentCount}</span>
+              </span>
+            </div>
           </div>
           <CommentForm confessionId={id} />
           <CommentList confessionId={id} />
-        </div>
+        </>
       )}
     </div>
   );

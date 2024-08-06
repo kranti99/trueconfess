@@ -19,7 +19,7 @@ const LeftSidebar = () => {
           <FaPlus size={24} className="text-purple-500" />
           <span className="text-sm">Upload</span>
         </Link>
-        <Link href="#" className="flex flex-col items-center space-y-2 hover:text-gray-400">
+        <Link href="/categories" className="flex flex-col items-center space-y-2 hover:text-gray-400">
           <FaThList size={24} />
           <span className="text-sm">Categories</span>
         </Link>

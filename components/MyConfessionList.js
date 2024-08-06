@@ -3,9 +3,9 @@ import { collection, query, where, getDocs, deleteDoc, doc, updateDoc } from 'fi
 import { db } from '/firebase';
 import parse from 'html-react-parser';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { ClipLoader } from 'react-spinners';
 import { FaCheckCircle } from 'react-icons/fa';
-import Link from 'next/link';
 import Select from 'react-select';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
@@ -14,7 +14,7 @@ import EditDropDown from './EditDropDown';
 import 'quill-emoji/dist/quill-emoji.css';
 import { Quill } from 'react-quill';
 import { EmojiBlot, ShortNameEmoji, ToolbarEmoji } from 'quill-emoji';
-import TimeAgo from './TimeAgo'; // Updated import
+import TimeAgo from './TimeAgo';
 
 const modules = {
   toolbar: [
@@ -38,38 +38,6 @@ const stripHtml = (html) => {
   return tmp.textContent || tmp.innerText || "";
 };
 
-const predefinedCategories = [
-  { value: 'general', label: 'General' },
-  { value: 'confessions', label: 'Confessions' },
-  { value: 'advice', label: 'Advice' },
-  { value: 'humor', label: 'Humor' },
-  { value: 'relationships', label: 'Relationships' },
-  { value: 'work', label: 'Work' },
-  { value: 'family', label: 'Family' },
-  { value: '18+', label: '18+' },
-  { value: 'health', label: 'Health' },
-  { value: 'school', label: 'School' },
-  { value: 'sports', label: 'Sports' },
-  { value: 'technology', label: 'Technology' },
-  { value: 'travel', label: 'Travel' },
-  { value: 'food', label: 'Food' },
-  { value: 'news', label: 'News' },
-  { value: 'entertainment', label: 'Entertainment' },
-  { value: 'science', label: 'Science' },
-  { value: 'politics', label: 'Politics' },
-  { value: 'culture', label: 'Culture' },
-  { value: 'history', label: 'History' },
-  { value: 'nature', label: 'Nature' },
-  { value: 'music', label: 'Music' },
-  { value: 'art', label: 'Art' },
-  { value: 'lifestyle', label: 'Lifestyle' },
-  { value: 'personal', label: 'Personal' },
-  { value: 'fashion', label: 'Fashion' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'memes', label: 'Memes' },
-  { value: 'gaming', label: 'Gaming' },
-];
-
 export default function MyConfessionList({ user }) {
   const [confessions, setConfessions] = useState([]);
   const [editingConfessionId, setEditingConfessionId] = useState(null);
@@ -83,6 +51,9 @@ export default function MyConfessionList({ user }) {
   const [sortType, setSortType] = useState('mostRecent');
   const [displayName, setDisplayName] = useState('username');
   const [editingDisplayName, setEditingDisplayName] = useState('username');
+  const [tags, setTags] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUserConfessions = async () => {
@@ -104,6 +75,31 @@ export default function MyConfessionList({ user }) {
     fetchUserConfessions();
   }, [user]);
 
+  useEffect(() => {
+    const fetchTagsAndCategories = async () => {
+      try {
+        const tagsSnapshot = await getDocs(collection(db, 'tags'));
+        const categoriesSnapshot = await getDocs(collection(db, 'categories'));
+
+        const fetchedTags = tagsSnapshot.docs.map((doc) => ({
+          value: doc.id,
+          label: doc.data().name,
+        }));
+        const fetchedCategories = categoriesSnapshot.docs.map((doc) => ({
+          value: doc.id,
+          label: doc.data().name,
+        }));
+
+        setTags(fetchedTags);
+        setCategories(fetchedCategories);
+      } catch (error) {
+        console.error('Error fetching tags and categories:', error);
+      }
+    };
+
+    fetchTagsAndCategories();
+  }, []);
+
   const handleDelete = async (id) => {
     try {
       const commentsQuery = query(collection(db, 'confessions', id, 'comments'));
@@ -124,9 +120,9 @@ export default function MyConfessionList({ user }) {
     setEditingConfessionId(id);
     setEditingTitle(title);
     setEditingContent(content);
-    setEditingDisplayName(displayName || 'username'); // Ensure displayName has a default value
-    setEditingTags((tags || []).map(tag => ({ value: tag, label: tag }))); // Ensure tags is an array
-    setEditingCategory((category || []).map(cat => ({ value: cat, label: cat }))); // Ensure category is an array
+    setEditingDisplayName(displayName || 'username');
+    setEditingTags((tags || []).map(tag => ({ value: tag, label: tag })));
+    setEditingCategory((category || []).map(cat => ({ value: cat, label: cat })));
   };
 
   const handleUpdate = async (id) => {
@@ -135,9 +131,9 @@ export default function MyConfessionList({ user }) {
       await updateDoc(confessionDoc, {
         title: editingTitle,
         content: editingContent,
-        displayName: editingDisplayName || 'username', // Ensure displayName has a default value
-        tags: (editingTags || []).map(tag => tag.value), // Ensure tags is an array
-        category: (editingCategory || []).map(cat => cat.value) // Ensure category is an array
+        displayName: editingDisplayName || 'username',
+        tags: (editingTags || []).map(tag => tag.value),
+        category: (editingCategory || []).map(cat => cat.value)
       });
       setConfessions(confessions.map((confession) =>
         (confession.id === id ? { ...confession, title: editingTitle, content: editingContent, displayName: editingDisplayName, tags: (editingTags || []).map(tag => tag.value), category: (editingCategory || []).map(cat => cat.value) } : confession)
@@ -183,6 +179,10 @@ export default function MyConfessionList({ user }) {
     setSortType(event.target.value);
   };
 
+  const navigateToConfession = (id) => {
+    router.push(`/confession/${id}`);
+  };
+
   return (
     <div className="bg-gray-900 text-white min-h-screen p-4">
       <div className="flex justify-between items-center mt-8">
@@ -210,131 +210,128 @@ export default function MyConfessionList({ user }) {
           ) : (
             <ul className="space-y-4 list-none">
               {sortedConfessions.map((confession) => (
-                <li key={confession.id} className="p-4 border border-gray-700 rounded shadow-sm relative">
+                <li
+                  key={confession.id}
+                  className="p-4 border border-gray-700 rounded shadow-sm relative cursor-pointer"
+                >
                   <div className="absolute right-4 top-4">
-                    <EditDropDown 
-                      onEdit={() => handleEdit(confession.id, confession.title, confession.content, confession.displayName, confession.tags, confession.category)}
+                    <EditDropDown
+                      onEdit={() => handleEdit(
+                        confession.id,
+                        confession.title,
+                        confession.content,
+                        confession.displayName,
+                        confession.tags,
+                        confession.category
+                      )}
                       onDelete={() => handleDelete(confession.id)}
                     />
                   </div>
-                  {editingConfessionId === confession.id ? (
-                    <div>
-                      <input
-                        type="text"
-                        value={editingTitle}
-                        onChange={(e) => setEditingTitle(e.target.value)}
-                        placeholder="Title"
-                        className="w-full p-2 mb-2 border border-gray-600 rounded bg-gray-800 text-white"
-                      />
-                      <ReactQuill
-                        value={editingContent}
-                        onChange={setEditingContent}
-                        modules={modules}
-                        className="mb-2"
-                      />
-                      <Select
-                        isMulti
-                        options={predefinedCategories}
-                        value={editingCategory}
-                        onChange={setEditingCategory}
-                        className="mb-2 w-1/2 bg-gray-800 text-white"
-                        placeholder="Select category..."
-                        styles={{
-                          control: (provided) => ({
-                            ...provided,
-                            backgroundColor: '#1f2937', // Tailwind gray-800
-                            color: 'white',
-                          }),
-                          menu: (provided) => ({
-                            ...provided,
-                            backgroundColor: '#1f2937',
-                          }),
-                          multiValue: (provided) => ({
-                            ...provided,
-                            backgroundColor: '#374151', // Tailwind gray-700
-                            color: 'white',
-                          }),
-                          input: (provided) => ({
-                            ...provided,
-                            color: 'white',
-                          }),
-                        }}
-                      />
-                      <Select
-                        isMulti
-                        options={predefinedCategories.map(cat => ({ value: cat.value, label: cat.label }))}
-                        value={editingTags}
-                        onChange={setEditingTags}
-                        className="mb-2 w-1/2 bg-gray-800 text-white"
-                        placeholder="Select tags..."
-                        styles={{
-                          control: (provided) => ({
-                            ...provided,
-                            backgroundColor: '#1f2937',
-                            color: 'white',
-                          }),
-                          menu: (provided) => ({
-                            ...provided,
-                            backgroundColor: '#1f2937',
-                          }),
-                          multiValue: (provided) => ({
-                            ...provided,
-                            backgroundColor: '#374151',
-                            color: 'white',
-                          }),
-                          input: (provided) => ({
-                            ...provided,
-                            color: 'white',
-                          }),
-                        }}
-                      />
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleUpdate(confession.id)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                        >
-                          Update
-                        </button>
-                        <button
-                          onClick={handleCancelEdit}
-                          className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className="text-xl font-semibold">{confession.title}</h3>
-                      <p className="text-gray-400 text-sm">By {confession.displayName} on <TimeAgo timestamp={confession.date} /></p>
-                      <div className="mt-2">
-                        {showMore[confession.id] ? (
-                          <div>{parse(confession.content)}</div>
-                        ) : (
-                          <div>{parse(stripHtml(confession.content).slice(0, 150))}...</div>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handleReadMoreToggle(confession.id)}
-                        className="text-blue-400 hover:underline mt-2"
+                  <h3 className="text-xl font-semibold">{confession.title}</h3>
+                  <p className="text-gray-400">
+                    {showMore[confession.id]
+                      ? parse(confession.content)
+                      : stripHtml(confession.content).slice(0, 100) + '...'}
+                    <button
+                      className="text-blue-500 hover:underline ml-2"
+                      onClick={() => handleReadMoreToggle(confession.id)}
+                    >
+                      {showMore[confession.id] ? 'Read Less' : 'Read More'}
+                    </button>
+                  </p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    By: {confession.displayName || 'username'}
+                  </p>
+                  <TimeAgo timestamp={confession.date} />
+                  <div className="mt-4 flex flex-wrap space-x-2">
+                    {confession.tags && confession.tags.map((tag, index) => (
+                      <a
+                        key={index}
+                        href={`/tag/${tag}`}
+                        className="px-2 py-1 bg-blue-600 rounded text-xs text-white hover:bg-blue-500"
                       >
-                        {showMore[confession.id] ? 'Read less' : 'Read more'}
-                      </button>
-                      <div className="flex items-center space-x-2 mt-4">
-                        <span className="text-gray-400 text-xs">Category: {confession.category?.length > 0 ? confession.category.join(', ') : 'General'}</span>
-                        <span className="text-gray-400 text-xs">Tags: {confession.tags?.length > 0 ? confession.tags.join(', ') : 'None'}</span>
-                      </div>
-                    </div>
-                  )}
+                        {tag}
+                      </a>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex flex-wrap space-x-2">
+                    {confession.category && confession.category.map((cat, index) => (
+                      <a
+                        key={index}
+                        href={`/category/${cat}`}
+                        className="px-2 py-1 bg-purple-600 rounded text-xs text-white hover:bg-purple-500"
+                      >
+                        {cat}
+                      </a>
+                    ))}
+                  </div>
                 </li>
               ))}
             </ul>
           )}
-          {showSuccessMessage && (
-            <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded">
-              <FaCheckCircle className="inline mr-2" /> Action Successful
+        </div>
+      )}
+      {editingConfessionId && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-gray-800 p-6 rounded shadow-lg w-full max-w-md">
+            <h3 className="text-2xl mb-4">Edit Confession</h3>
+            <input
+              type="text"
+              className="w-full p-2 mb-4 rounded bg-gray-700 border border-gray-600 text-white"
+              value={editingTitle}
+              onChange={(e) => setEditingTitle(e.target.value)}
+              placeholder="Title"
+            />
+            <input
+              type="text"
+              className="w-full p-2 mb-4 rounded bg-gray-700 border border-gray-600 text-white"
+              value={editingDisplayName}
+              onChange={(e) => setEditingDisplayName(e.target.value)}
+              placeholder="Display Name"
+            />
+            <Select
+              isMulti
+              options={tags}
+              value={editingTags}
+              onChange={setEditingTags}
+              placeholder="Tags"
+              className="mb-4"
+            />
+            <Select
+              isMulti
+              options={categories}
+              value={editingCategory}
+              onChange={setEditingCategory}
+              placeholder="Category"
+              className="mb-4"
+            />
+            <ReactQuill
+              value={editingContent}
+              onChange={setEditingContent}
+              modules={modules}
+              className="mb-4"
+            />
+            <div className="flex justify-end space-x-4">
+              <button
+                className="px-4 py-2 rounded bg-blue-600 text-white"
+                onClick={() => handleUpdate(editingConfessionId)}
+              >
+                Save
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-gray-600 text-white"
+                onClick={handleCancelEdit}
+              >
+                Cancel
+              </button>
             </div>
-          )}
+          </div>
+        </div>
+      )}
+      {showSuccessMessage && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg flex items-center">
+          <FaCheckCircle className="mr-2" />
+          <span>Confession updated successfully!</span>
         </div>
       )}
     </div>

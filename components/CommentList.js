@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { collection, query, onSnapshot, deleteDoc, doc, setDoc } from 'firebase/firestore';
 import { db } from '/firebase';
-import { getAuth } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import TimeAgo from './TimeAgo';
 import Avatar from 'react-avatar';
 import Modal from '@components/modal';
 import EditDropDown from './EditDropDown';
 import parse from 'html-react-parser';
 import LikeButton from './LikeButton';
+import AuthForm from './AuthForm';
 import { FaCheckCircle, FaReply } from 'react-icons/fa';
 
 import 'react-quill/dist/quill.bubble.css';
@@ -18,10 +19,8 @@ const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 const modules = {
   toolbar: [
-    [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }],
     ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-    [{ 'color': [] }, { 'background': [] }],
     [{ 'align': [] }],
     ['emoji'],
     ['clean']
@@ -42,8 +41,18 @@ export default function CommentList({ confessionId }) {
   const [commenter, setCommenter] = useState('');
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
   const auth = getAuth();
-  const user = auth.currentUser;
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribeAuth();
+  }, [auth]);
 
   useEffect(() => {
     if (!confessionId) return;
@@ -83,6 +92,11 @@ export default function CommentList({ confessionId }) {
   };
 
   const handleReply = async () => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     if (replyContent.trim() === '') return;
 
     try {
@@ -120,7 +134,7 @@ export default function CommentList({ confessionId }) {
       )}
 
       {comments.map((comment) => (
-        <div key={comment.id} className="p-4 bg-gray-800 rounded shadow-lg">
+        <div key={comment.id} className={`p-4 bg-dark-background-light rounded shadow-lg ${comment.parentId ? 'ml-8' : ''}`}>
           <div className="flex items-start space-x-4 mb-4">
             <Avatar
               name={comment.nickname}
@@ -150,7 +164,13 @@ export default function CommentList({ confessionId }) {
             <LikeButton itemId={comment.id} itemType={`confessions/${confessionId}/comments`} />
             <button
               className="flex items-center space-x-1 text-gray-400 hover:text-white"
-              onClick={() => setReplyTo(comment.id)}
+              onClick={() => {
+                if (!user) {
+                  setIsAuthModalOpen(true);
+                } else {
+                  setReplyTo(comment.id);
+                }
+              }}
             >
               <FaReply />
               <span>Reply</span>
@@ -166,16 +186,18 @@ export default function CommentList({ confessionId }) {
                 theme="bubble"
                 className="bg-gray-900 text-white rounded shadow-lg"
               />
-              <div className="flex items-center space-x-2 mt-2">
-                <input
-                  type="checkbox"
-                  id="anonymous"
-                  className="form-checkbox h-5 w-5 text-gray-600"
-                  checked={isAnonymous}
-                  onChange={(e) => setIsAnonymous(e.target.checked)}
-                />
-                <label htmlFor="anonymous" className="text-gray-300">Post as Anonymous</label>
-              </div>
+              {user && user.uid === comment.userId && (
+                <div className="flex items-center space-x-2 mt-2">
+                  <input
+                    type="checkbox"
+                    id="anonymous"
+                    className="form-checkbox h-5 w-5 text-gray-600"
+                    checked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                  />
+                  <label htmlFor="anonymous" className="text-gray-300">Post as Anonymous</label>
+                </div>
+              )}
               <div className="flex justify-end mt-2">
                 <button
                   className="px-4 py-2 bg-red-600 text-white rounded mr-2"
@@ -201,6 +223,13 @@ export default function CommentList({ confessionId }) {
         onConfirm={handleDelete}
         message={`Are you sure you want to delete this comment by ${commenter}?`}
       />
+
+      {isAuthModalOpen && (
+        <AuthForm
+          closeModal={() => setIsAuthModalOpen(false)}
+          mode={authMode}
+        />
+      )}
     </div>
   );
 }
