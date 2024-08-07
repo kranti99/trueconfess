@@ -12,8 +12,6 @@ export default function Home() {
       <main>
       <br/> <br/>
         <h1 className="text-3xl font-bold my-4">Confessions</h1>
-       
-        <ConfessionForm />
         <ConfessionList />
       </main>
       <RightSidebar />

@@ -44,7 +44,7 @@ const LeftSidebar = () => {
           <FaSearch size={24} />
           <span className="text-sm">Explore</span>
         </Link>
-        <Link href="#" className="flex flex-col items-center space-y-2 hover:text-gray-400">
+        <Link href="/upload" className="flex flex-col items-center space-y-2 hover:text-gray-400">
           <FaPlus size={24} className="text-purple-500" />
           <span className="text-sm">Upload</span>
         </Link>

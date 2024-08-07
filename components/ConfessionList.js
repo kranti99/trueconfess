@@ -7,6 +7,7 @@ import { db } from "/firebase";
 import dynamic from "next/dynamic";
 import { FaThumbsUp, FaComment } from "react-icons/fa";
 import parse from "html-react-parser";
+import LoadingSpinner from "@components/LoadingSpinner"; // Ensure the correct path
 
 const Avatar = dynamic(() => import("react-avatar"), { ssr: false });
 const TimeAgo = dynamic(() => import("./TimeAgo"), { ssr: false });
@@ -14,6 +15,7 @@ const TimeAgo = dynamic(() => import("./TimeAgo"), { ssr: false });
 const ConfessionList = () => {
   const [confessions, setConfessions] = useState([]);
   const [sortType, setSortType] = useState('mostRecent');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -27,6 +29,8 @@ const ConfessionList = () => {
           setConfessions(confessionsData);
         } catch (error) {
           console.error("Error fetching confessions: ", error);
+        } finally {
+          setLoading(false);
         }
       };
 
@@ -55,6 +59,8 @@ const ConfessionList = () => {
     }
     return content;
   };
+
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="space-y-6 p-4 text-white">

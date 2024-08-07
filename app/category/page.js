@@ -4,35 +4,47 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '/firebase';
+import LoadingSpinner from '/components/LoadingSpinner'; // Ensure this component exists or create one
 
 const CategoryArchive = () => {
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCategoriesAndTags = async () => {
-      const categoryCollection = collection(db, 'categories');
-      const tagCollection = collection(db, 'tags');
+      try {
+        const categoryCollection = collection(db, 'categories');
+        const tagCollection = collection(db, 'tags');
 
-      const categorySnapshot = await getDocs(categoryCollection);
-      const tagSnapshot = await getDocs(tagCollection);
+        const categorySnapshot = await getDocs(categoryCollection);
+        const tagSnapshot = await getDocs(tagCollection);
 
-      const categoryData = categorySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+        const categoryData = categorySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
 
-      const tagData = tagSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+        const tagData = tagSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
 
-      setCategories(categoryData);
-      setTags(tagData);
+        setCategories(categoryData);
+        setTags(tagData);
+        setLoading(false);
+      } catch (error) {
+        setError(error.message);
+        setLoading(false);
+      }
     };
 
     fetchCategoriesAndTags();
   }, []);
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <p className="text-red-500">{error}</p>;
 
   return (
     <div className="p-4 text-white mt-12">
