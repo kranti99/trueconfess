@@ -31,7 +31,6 @@ const modules = {
   "emoji-shortname": true,
 };
 
-// Utility function to strip HTML tags
 const stripHtml = (html) => {
   const tmp = document.createElement("div");
   tmp.innerHTML = html;
@@ -53,6 +52,7 @@ export default function MyConfessionList({ user }) {
   const [editingDisplayName, setEditingDisplayName] = useState('username');
   const [tags, setTags] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [error, setError] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -112,6 +112,7 @@ export default function MyConfessionList({ user }) {
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (error) {
+      setError('Error deleting confession.');
       console.error('Error deleting confession:', error);
     }
   };
@@ -147,6 +148,7 @@ export default function MyConfessionList({ user }) {
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (error) {
+      setError('Error updating confession.');
       console.error('Error updating confession:', error);
     }
   };
@@ -205,133 +207,123 @@ export default function MyConfessionList({ user }) {
         </div>
       ) : (
         <div className="mt-8">
-          {confessions.length === 0 ? (
-            <p>No confessions yet.</p>
+          {sortedConfessions.length === 0 ? (
+            <p className="text-gray-400">No confessions found.</p>
           ) : (
-            <ul className="space-y-4 list-none">
-              {sortedConfessions.map((confession) => (
-                <li
-                  key={confession.id}
-                  className="p-4 border border-gray-700 rounded shadow-sm relative cursor-pointer"
-                >
-                  <div className="absolute right-4 top-4">
-                    <EditDropDown
-                      onEdit={() => handleEdit(
-                        confession.id,
-                        confession.title,
-                        confession.content,
-                        confession.displayName,
-                        confession.tags,
-                        confession.category
-                      )}
-                      onDelete={() => handleDelete(confession.id)}
+            sortedConfessions.map((confession) => (
+              <div
+                key={confession.id}
+                className="bg-gray-800 p-4 rounded-md mb-4 shadow-lg"
+              >
+                {editingConfessionId === confession.id ? (
+                  <div className="edit-mode">
+                    <input
+                      className="w-full p-2 mb-2 bg-gray-700 text-white rounded border border-gray-600 focus:outline-none"
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      placeholder="Title"
                     />
-                  </div>
-                  <h3 className="text-xl font-semibold">{confession.title}</h3>
-                  <p className="text-gray-400">
-                    {showMore[confession.id]
-                      ? parse(confession.content)
-                      : stripHtml(confession.content).slice(0, 100) + '...'}
+                    <ReactQuill
+                      value={editingContent}
+                      onChange={setEditingContent}
+                      modules={modules}
+                      className="bg-gray-700 text-white rounded mb-2"
+                    />
+                    <Select
+                      value={editingTags}
+                      onChange={setEditingTags}
+                      options={tags}
+                      isMulti
+                      placeholder="Tags"
+                      className="bg-gray-700 text-white rounded mb-2"
+                    />
+                    <Select
+                      value={editingCategory}
+                      onChange={setEditingCategory}
+                      options={categories}
+                      isMulti
+                      placeholder="Category"
+                      className="bg-gray-700 text-white rounded mb-2"
+                    />
+                    <input
+                      className="w-full p-2 mb-2 bg-gray-700 text-white rounded border border-gray-600 focus:outline-none"
+                      value={editingDisplayName}
+                      onChange={(e) => setEditingDisplayName(e.target.value)}
+                      placeholder="Display Name"
+                    />
                     <button
-                      className="text-blue-500 hover:underline ml-2"
-                      onClick={() => handleReadMoreToggle(confession.id)}
+                      onClick={() => handleUpdate(confession.id)}
+                      className="bg-green-600 text-white px-4 py-2 rounded mr-2"
                     >
-                      {showMore[confession.id] ? 'Read Less' : 'Read More'}
+                      Save
                     </button>
-                  </p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    By: {confession.displayName || 'username'}
-                  </p>
-                  <TimeAgo timestamp={confession.date} />
-                  <div className="mt-4 flex flex-wrap space-x-2">
-                    {confession.tags && confession.tags.map((tag, index) => (
-                      <a
-                        key={index}
-                        href={`/tag/${tag}`}
-                        className="px-2 py-1 bg-blue-600 rounded text-xs text-white hover:bg-blue-500"
-                      >
-                        {tag}
-                      </a>
-                    ))}
+                    <button
+                      onClick={handleCancelEdit}
+                      className="bg-gray-600 text-white px-4 py-2 rounded"
+                    >
+                      Cancel
+                    </button>
                   </div>
-                  <div className="mt-2 flex flex-wrap space-x-2">
-                    {confession.category && confession.category.map((cat, index) => (
-                      <a
-                        key={index}
-                        href={`/category/${cat}`}
-                        className="px-2 py-1 bg-purple-600 rounded text-xs text-white hover:bg-purple-500"
+                ) : (
+                  <div className="view-mode">
+                    <h3 className="text-xl font-semibold mb-2 cursor-pointer" onClick={() => navigateToConfession(confession.id)}>{confession.title}</h3>
+                    <p className="text-sm text-gray-400 mb-2">
+                      <TimeAgo timestamp={confession.date} />
+                      {' | '}
+                      <span>{confession.commentCount} comments</span>
+                    </p>
+                    <div className="text-gray-200 mb-2">
+                      {showMore[confession.id]
+                        ? parse(confession.content)
+                        : parse(confession.content.slice(0, 200))}
+                    </div>
+                    {stripHtml(confession.content).length > 200 && (
+                      <button
+                        onClick={() => handleReadMoreToggle(confession.id)}
+                        className="text-blue-500 hover:underline"
                       >
-                        {cat}
-                      </a>
-                    ))}
+                        {showMore[confession.id] ? 'Read less' : 'Read more'}
+                      </button>
+                    )}
+                    <p className="text-sm text-gray-400 mt-2">Posted by: {confession.displayName}</p>
+                    <div className="flex items-center mt-2">
+                      <button
+                        onClick={() =>
+                          handleEdit(
+                            confession.id,
+                            confession.title,
+                            confession.content,
+                            confession.displayName,
+                            confession.tags,
+                            confession.category
+                          )
+                        }
+                        className="bg-blue-600 text-white px-4 py-2 rounded mr-2"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(confession.id)}
+                        className="bg-red-600 text-white px-4 py-2 rounded"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </li>
-              ))}
-            </ul>
+                )}
+              </div>
+            ))
           )}
         </div>
       )}
-      {editingConfessionId && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-gray-800 p-6 rounded shadow-lg w-full max-w-md">
-            <h3 className="text-2xl mb-4">Edit Confession</h3>
-            <input
-              type="text"
-              className="w-full p-2 mb-4 rounded bg-gray-700 border border-gray-600 text-white"
-              value={editingTitle}
-              onChange={(e) => setEditingTitle(e.target.value)}
-              placeholder="Title"
-            />
-            <input
-              type="text"
-              className="w-full p-2 mb-4 rounded bg-gray-700 border border-gray-600 text-white"
-              value={editingDisplayName}
-              onChange={(e) => setEditingDisplayName(e.target.value)}
-              placeholder="Display Name"
-            />
-            <Select
-              isMulti
-              options={tags}
-              value={editingTags}
-              onChange={setEditingTags}
-              placeholder="Tags"
-              className="mb-4"
-            />
-            <Select
-              isMulti
-              options={categories}
-              value={editingCategory}
-              onChange={setEditingCategory}
-              placeholder="Category"
-              className="mb-4"
-            />
-            <ReactQuill
-              value={editingContent}
-              onChange={setEditingContent}
-              modules={modules}
-              className="mb-4"
-            />
-            <div className="flex justify-end space-x-4">
-              <button
-                className="px-4 py-2 rounded bg-blue-600 text-white"
-                onClick={() => handleUpdate(editingConfessionId)}
-              >
-                Save
-              </button>
-              <button
-                className="px-4 py-2 rounded bg-gray-600 text-white"
-                onClick={handleCancelEdit}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+      {showSuccessMessage && (
+        <div className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded">
+          <FaCheckCircle className="inline-block mr-2" /> Confession updated successfully!
         </div>
       )}
-      {showSuccessMessage && (
-        <div className="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg flex items-center">
-          <FaCheckCircle className="mr-2" />
-          <span>Confession updated successfully!</span>
+      {error && (
+        <div className="fixed top-4 right-4 bg-red-600 text-white px-4 py-2 rounded">
+          {error}
         </div>
       )}
     </div>

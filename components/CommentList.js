@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { collection, query, onSnapshot, deleteDoc, doc, setDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, deleteDoc, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '/firebase';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import TimeAgo from './TimeAgo';
@@ -10,7 +10,7 @@ import EditDropDown from './EditDropDown';
 import parse from 'html-react-parser';
 import LikeButton from './LikeButton';
 import AuthForm from './AuthForm';
-import { FaCheckCircle, FaReply } from 'react-icons/fa';
+import { FaCheckCircle, FaReply, FaPaperPlane } from 'react-icons/fa';
 
 import 'react-quill/dist/quill.bubble.css';
 import 'quill-emoji/dist/quill-emoji.css';
@@ -43,8 +43,11 @@ export default function CommentList({ confessionId }) {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editContent, setEditContent] = useState('');
   const auth = getAuth();
   const [user, setUser] = useState(null);
+  const [repliesVisible, setRepliesVisible] = useState({});
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -80,14 +83,28 @@ export default function CommentList({ confessionId }) {
     return () => unsubscribe();
   }, [confessionId]);
 
-  const handleDelete = async () => {
-    if (commentToDelete) {
-      try {
-        await deleteDoc(doc(db, 'confessions', confessionId, 'comments', commentToDelete));
-        setIsModalOpen(false);
-      } catch (error) {
-        console.error('Error deleting comment:', error);
-      }
+  const handleDelete = async (commentId) => {
+    try {
+      await deleteDoc(doc(db, 'confessions', confessionId, 'comments', commentId));
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    }
+  };
+
+  const handleEdit = (commentId) => {
+    setEditingCommentId(commentId);
+    const commentToEdit = comments.find((comment) => comment.id === commentId);
+    setEditContent(commentToEdit.content);
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      const commentRef = doc(db, 'confessions', confessionId, 'comments', editingCommentId);
+      await updateDoc(commentRef, { content: editContent });
+      setEditingCommentId(null);
+    } catch (error) {
+      console.error('Error editing comment:', error);
     }
   };
 
@@ -121,11 +138,18 @@ export default function CommentList({ confessionId }) {
     }
   };
 
+  const toggleReplies = (commentId) => {
+    setRepliesVisible((prev) => ({
+      ...prev,
+      [commentId]: !prev[commentId],
+    }));
+  };
+
   if (loading) return <p>Loading comments...</p>;
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 dark-mode">
       {showSuccessMessage && (
         <div className="fixed bottom-0 right-0 m-4 p-4 bg-green-500 text-white rounded shadow-lg">
           <FaCheckCircle className="inline mr-2" />
@@ -134,33 +158,55 @@ export default function CommentList({ confessionId }) {
       )}
 
       {comments.map((comment) => (
-        <div key={comment.id} className={`p-4 bg-dark-background-light rounded shadow-lg ${comment.parentId ? 'ml-8' : ''}`}>
+        <div key={comment.id} className={`comment-container ${comment.parentId ? 'ml-8' : ''}`}>
           <div className="flex items-start space-x-4 mb-4">
             <Avatar
               name={comment.nickname}
               src={comment.avatar || '/default-avatar.png'}
-              size="40"
+              size={comment.parentId ? "30" : "40"}
               round={true}
             />
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <p className="font-bold text-base">{comment.nickname}</p>
-                <TimeAgo timestamp={comment.date} />
+            <div className="bg-dark-background-light w-fit px-2 py-1 pb-0 rounded-lg">
+              <p className="font-bold text-base mb-0">{comment.nickname}</p>
+              <div className="text-gray-300 comment-content">
+                {editingCommentId === comment.id ? (
+                  <ReactQuill
+                    value={editContent}
+                    onChange={setEditContent}
+                    modules={modules}
+                    theme="bubble"
+                  />
+                ) : (
+                  parse(comment.content)
+                )}
               </div>
-              <div className="text-gray-300">{parse(comment.content)}</div>
+              {editingCommentId === comment.id && (
+                <div className="flex justify-end mt-2 space-x-2">
+                  <button
+                    onClick={() => setEditingCommentId(null)}
+                    className="bg-gray-300 text-gray-800 px-4 py-1 rounded hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleEditSubmit}
+                    className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
+                  >
+                    Save
+                  </button>
+                </div>
+              )}
             </div>
             {user && user.uid === comment.userId && (
               <EditDropDown
-                commentId={comment.id}
-                confessionId={confessionId}
-                setCommentToDelete={setCommentToDelete}
-                setIsModalOpen={setIsModalOpen}
-                setCommenter={setCommenter}
-                commenter={comment.nickname}
+                itemId={comment.id}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
               />
             )}
           </div>
           <div className="flex items-center space-x-4 text-sm text-gray-400">
+            <TimeAgo timestamp={comment.date} />
             <LikeButton itemId={comment.id} itemType={`confessions/${confessionId}/comments`} />
             <button
               className="flex items-center space-x-1 text-gray-400 hover:text-white"
@@ -182,54 +228,95 @@ export default function CommentList({ confessionId }) {
                 value={replyContent}
                 onChange={setReplyContent}
                 modules={modules}
-                placeholder="Write your reply here..."
                 theme="bubble"
-                className="bg-gray-900 text-white rounded shadow-lg"
+                placeholder="Write a reply..."
               />
-              {user && user.uid === comment.userId && (
-                <div className="flex items-center space-x-2 mt-2">
+              <div className="flex justify-between mt-2">
+                <button
+                  onClick={handleReply}
+                  className="text-blue-500 hover:text-blue-600"
+                >
+                  <FaPaperPlane size={24} />
+                </button>
+                <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    id="anonymous"
-                    className="form-checkbox h-5 w-5 text-gray-600"
                     checked={isAnonymous}
                     onChange={(e) => setIsAnonymous(e.target.checked)}
+                    className="form-checkbox h-4 w-4 text-blue-600"
                   />
-                  <label htmlFor="anonymous" className="text-gray-300">Post as Anonymous</label>
-                </div>
-              )}
-              <div className="flex justify-end mt-2">
-                <button
-                  className="px-4 py-2 bg-red-600 text-white rounded mr-2"
-                  onClick={() => setReplyTo(null)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
-                  onClick={handleReply}
-                >
-                  Post Reply
-                </button>
+                  <span className="text-gray-400">Post as Anonymous</span>
+                </label>
               </div>
+            </div>
+          )}
+          {repliesVisible[comment.id] && (
+            <div className="ml-8 mt-4">
+              {comments
+                .filter((reply) => reply.parentId === comment.id)
+                .map((reply) => (
+                  <div key={reply.id} className="flex items-start space-x-4 mb-4">
+                    <Avatar
+                      name={reply.nickname}
+                      src={reply.avatar || '/default-avatar.png'}
+                      size="30"
+                      round={true}
+                    />
+                    <div className="bg-dark-background-light w-fit px-2 py-1 pb-0 rounded-lg min-w-32">
+                      <p className="font-bold text-base mb-0">{reply.nickname}</p>
+                      <div className="text-gray-300 comment-content">{parse(reply.content)}</div>
+                    </div>
+                    {user && user.uid === reply.userId && (
+                      <EditDropDown
+                        itemId={reply.id}
+                        onEdit={() => handleEdit(reply.id)}
+                        onDelete={() => {
+                          setCommentToDelete(reply.id);
+                          setIsModalOpen(true);
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
             </div>
           )}
         </div>
       ))}
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={handleDelete}
-        message={`Are you sure you want to delete this comment by ${commenter}?`}
-      />
-
-      {isAuthModalOpen && (
-        <AuthForm
-          closeModal={() => setIsAuthModalOpen(false)}
-          mode={authMode}
-        />
+      {!user && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Login to comment
+          </button>
+        </div>
       )}
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <div>
+          <p>Are you sure you want to delete this comment?</p>
+          <div className="flex justify-end space-x-2 mt-4">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="bg-gray-300 text-gray-800 px-4 py-1 rounded hover:bg-gray-400"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => handleDelete(commentToDelete)}
+              className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)}>
+        <AuthForm mode={authMode} setMode={setAuthMode} onAuthSuccess={() => setIsAuthModalOpen(false)} />
+      </Modal>
     </div>
   );
 }

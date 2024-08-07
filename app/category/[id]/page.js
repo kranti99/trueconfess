@@ -11,18 +11,18 @@ import parse from "html-react-parser";
 const Avatar = dynamic(() => import("react-avatar"), { ssr: false });
 const TimeAgo = dynamic(() => import("@components/TimeAgo"), { ssr: false });
 
-const SingleTag = ({ params }) => {
-  const { tagId } = params;
+const SingleCategory = ({ params }) => {
+  const { categoryId } = params;
   const [confessions, setConfessions] = useState([]);
-  const [tag, setTag] = useState(null);
+  const [category, setCategory] = useState(null);
 
   useEffect(() => {
-    const fetchConfessionsAndTag = async () => {
-      if (tagId) {
-        const tagDoc = await getDoc(doc(db, 'tags', tagId));
-        setTag(tagDoc.data());
+    const fetchConfessionsAndCategory = async () => {
+      if (categoryId) {
+        const categoryDoc = await getDoc(doc(db, 'categories', categoryId));
+        setCategory(categoryDoc.data());
 
-        const q = query(collection(db, 'confessions'), where('tags', 'array-contains', tagId));
+        const q = query(collection(db, 'confessions'), where('category', '==', categoryId));
         const querySnapshot = await getDocs(q);
         const confessionsData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -32,19 +32,19 @@ const SingleTag = ({ params }) => {
       }
     };
 
-    fetchConfessionsAndTag();
-  }, [tagId]);
+    fetchConfessionsAndCategory();
+  }, [categoryId]);
 
   return (
     <div className="space-y-6 p-4 text-white">
-      <h1 className="text-3xl font-bold mb-6">Tag: {tag?.name}</h1>
+      <h1 className="text-3xl font-bold mb-6">{category?.name}</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {confessions.map((confession) => (
           <div key={confession.id}>
             <Link href={`/confession/${confession.id}`}>
               <div className="p-6 border bg-dark-background-light border-gray-700 rounded-lg shadow-md hover:bg-zinc-900 transition duration-300">
                 <div className="flex items-center mb-2">
-                <Avatar src={confession.avatar || '/default-avatar.png'} size="40" round />
+                  <Avatar src={confession.avatar || '/default-avatar.png'} size="40" round />
                   <div className="ml-4">
                     <h2 className="text-sm font-semibold mb-0">{confession.nickname}</h2>
                     <TimeAgo timestamp={confession.date} />
@@ -95,5 +95,4 @@ const SingleTag = ({ params }) => {
   );
 };
 
-export default SingleTag;
-
+export default SingleCategory;
