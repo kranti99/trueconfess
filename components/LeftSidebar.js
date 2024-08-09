@@ -40,7 +40,7 @@ const LeftSidebar = () => {
           <FaHome size={24} />
           <span className="text-sm">Home</span>
         </Link>
-        <Link href="#" className="flex flex-col items-center space-y-2 hover:text-gray-400">
+        <Link href="/explore" className="flex flex-col items-center space-y-2 hover:text-gray-400">
           <FaSearch size={24} />
           <span className="text-sm">Explore</span>
         </Link>

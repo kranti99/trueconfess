@@ -63,7 +63,7 @@ const CategoryArchive = () => {
       <h1 className="text-3xl font-bold my-6">Tags</h1>
       <div className="flex flex-wrap gap-4">
         {tags.map((tag) => (
-          <Link key={tag.id} href={`/tag/${tag.id}`}>
+          <Link key={tag.id} href={`/tags/${tag.name}`}>
             <span className="bg-gray-700 text-gray-300 text-sm px-3 py-1 rounded-md hover:bg-gray-600 transition duration-300">
               {tag.name}
             </span>

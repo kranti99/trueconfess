@@ -117,7 +117,7 @@ const ConfessionList = () => {
                   <div className="flex items-center">
                     <span className="text-gray-400 text-xs font-semibold">Tags:</span>
                     {confession.tags.map((tag, index) => (
-                      <Link key={index} href={`/tag/${tag}`}>
+                      <Link key={index} href={`/tags/${tag}`}>
                         <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-md hover:bg-gray-600 transition duration-300 ml-2">
                           {tag}
                         </span>
