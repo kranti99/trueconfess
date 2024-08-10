@@ -14,21 +14,6 @@ import CreatableSelect from 'react-select/creatable';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
-const dot = (color = 'transparent') => ({
-  alignItems: 'center',
-  display: 'flex',
-
-  ':before': {
-    backgroundColor: color,
-    borderRadius: 10,
-    content: '" "',
-    display: 'block',
-    marginRight: 8,
-    height: 10,
-    width: 10,
-  },
-});
-
 const darkModeSelectStyles = {
   control: (styles) => ({
     ...styles,
@@ -52,8 +37,8 @@ const darkModeSelectStyles = {
     };
   },
   input: (styles) => ({ ...styles, color: '#fff' }),
-  placeholder: (styles) => ({ ...styles, color: '#aaa', ...dot('#ccc') }),
-  singleValue: (styles, { data }) => ({ ...styles, color: '#fff', ...dot(data.color) }),
+  placeholder: (styles) => ({ ...styles, color: '#aaa' }),
+  singleValue: (styles, { data }) => ({ ...styles, color: '#fff' }),
   multiValue: (styles) => ({ ...styles, backgroundColor: '#444', color: '#fff' }),
   multiValueLabel: (styles) => ({ ...styles, color: '#fff' }),
   multiValueRemove: (styles) => ({
@@ -79,6 +64,9 @@ const ConfessionForm = () => {
   const [tags, setTags] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [location, setLocation] = useState('');
+  const [gender, setGender] = useState('');
+  const [age, setAge] = useState('');
 
   const auth = getAuth();
 
@@ -139,7 +127,7 @@ const ConfessionForm = () => {
     try {
       setIsLoading(true);
       await addDoc(collection(db, 'confessions'), {
-        title,
+        title: title.trim(),
         content,
         categories: selectedCategories.map(category => category.value),
         tags: selectedTags.map(tag => tag.value),
@@ -148,6 +136,9 @@ const ConfessionForm = () => {
         nickname: isAnonymous ? 'Anonymous' : user.displayName || 'Anonymous',
         likes: 0,
         commentCount: 0,
+        location: location.trim(),
+        gender,
+        age: parseInt(age, 10),
       });
       setContent('');
       setTitle('');
@@ -169,7 +160,7 @@ const ConfessionForm = () => {
     try {
       setIsLoading(true);
       const draft = {
-        title,
+        title: title.trim(),
         content,
         categories: selectedCategories.map(category => category.value),
         tags: selectedTags.map(tag => tag.value),
@@ -179,6 +170,9 @@ const ConfessionForm = () => {
         likes: 0,
         commentCount: 0,
         isDraft: true,
+        location: location.trim(),
+        gender,
+        age: parseInt(age, 10),
       };
       localStorage.setItem('draft', JSON.stringify(draft));
       await addDoc(collection(db, 'drafts'), draft);
@@ -206,19 +200,38 @@ const ConfessionForm = () => {
   }, [categories]);
 
   const handleCreateTag = async (inputValue) => {
+    if (!/^[a-zA-Z0-9]+$/.test(inputValue)) {
+      alert('Tags should only contain alphanumeric characters without spaces or special characters.');
+      return;
+    }
     const newTag = { name: inputValue };
-    const newTagDocRef = doc(collection(db, 'tags'));
+    const newTagDocRef = doc(db, 'tags', inputValue); // Use tag name as the document ID
     await setDoc(newTagDocRef, newTag);
-    const newTagOption = { value: newTagDocRef.id, label: inputValue };
+    const newTagOption = { value: inputValue, label: inputValue };
     setSelectedTags(prevTags => [...prevTags, newTagOption]);
     setTags(prevTags => [...prevTags, newTagOption]);
   };
 
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (showForm && (title || content)) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [showForm, title, content]);
+
   const modules = {
     toolbar: [
-      [{ 'header': '1'}, {'header': '2'}],
+      [{ 'header': '1' }, { 'header': '2' }],
       [{ size: [] }],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
       [{ 'align': [] }],
       ['emoji'],
@@ -230,125 +243,135 @@ const ConfessionForm = () => {
   };
 
   return (
-    <div className="p-6 bg-dark-background-light rounded-lg text-white shadow-md max-w-3xl mx-auto w-full">
-      {!showForm ? (
-        <textarea
-          onClick={() => {
-            if (!user) {
-              setShowModal(true);
-              return;
-            }
-            setShowForm(true);
-          }}
-          placeholder="Post your confession..."
-          className="w-full p-3 border border-gray-700 rounded-lg bg-dark-background text-white focus:outline-none focus:border-blue-500 transition duration-300"
-        />
-      ) : (
-        <form onSubmit={handleSubmit} className={`space-y-6 transition-all duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">Create Post</h2>
-            <button
-              type="button"
-              className="text-gray-400 hover:text-gray-200"
-              onClick={() => setShowForm(false)}
-            >
-              X
-            </button>
-          </div>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title"
-            className="w-full p-3 border-b border-gray-700 bg-dark-background text-white focus:outline-none focus:border-blue-500 transition duration-300"
-          />
-          <ReactQuill
-            value={content}
-            onChange={(value) => setContent(value)}
-            placeholder="Share your confession..."
-            modules={modules}
-            className="bg-dark-background-light text-white"
-          />
+    <div className="p-6 bg-dark-background-light rounded-lg text-white shadow-md max-w-3xl mx-auto">
+      {showSuccessMessage && (
+        <div className="flex items-center bg-green-500 p-4 rounded mb-4">
+          <FaCheckCircle className="mr-2" />
+          <span>Your confession has been submitted successfully!</span>
+        </div>
+      )}
+      {!showForm && (
+        <div className="text-center">
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-full text-white focus:outline-none"
+          >
+            Write Confession
+          </button>
+        </div>
+      )}
+      {showForm && (
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-gray-400 mb-1">Categories</label>
-            <Select
-              isMulti
-              value={selectedCategories}
-              onChange={setSelectedCategories}
-              options={categories}
-              styles={darkModeSelectStyles}
-              className="react-select-container"
-              classNamePrefix="react-select"
-              placeholder="Select categories"
-              theme={(theme) => ({
-                ...theme,
-                colors: {
-                  ...theme.colors,
-                  primary25: '#444',
-                  primary: '#555',
-                },
-              })}
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title"
+              className="w-full p-2 bg-dark-background rounded border border-dark-border focus:outline-none text-white"
+              maxLength={50}
+              required
             />
           </div>
           <div>
-            <label className="block text-gray-400 mb-1">Tags</label>
+            <ReactQuill
+              value={content}
+              onChange={setContent}
+              placeholder="Write your confession here..."
+              className="bg-dark-background text-white rounded border border-dark-border"
+              modules={modules}
+              theme="snow"
+            />
+          </div>
+          <div>
+            <Select
+              options={categories}
+              value={selectedCategories}
+              onChange={setSelectedCategories}
+              isMulti
+              placeholder="Select Categories"
+              styles={darkModeSelectStyles}
+            />
+          </div>
+          <div>
             <CreatableSelect
               isMulti
               value={selectedTags}
               onChange={setSelectedTags}
               onCreateOption={handleCreateTag}
               options={tags}
+              placeholder="Add or Select Tags"
               styles={darkModeSelectStyles}
-              className="react-select-container"
-              classNamePrefix="react-select"
-              placeholder="Select or create tags"
-              theme={(theme) => ({
-                ...theme,
-                colors: {
-                  ...theme.colors,
-                  primary25: '#444',
-                  primary: '#555',
-                },
-              })}
             />
           </div>
-          <div className="flex items-center space-x-3">
+          <div>
             <input
-              type="checkbox"
-              id="anonymous"
-              checked={isAnonymous}
-              onChange={() => setIsAnonymous(!isAnonymous)}
-              className="form-checkbox h-5 w-5 text-blue-600 bg-dark-background border-gray-600 rounded focus:outline-none"
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Location"
+              className="w-full p-2 bg-dark-background rounded border border-dark-border focus:outline-none text-white"
+              maxLength={30}
+              required
             />
-            <label htmlFor="anonymous" className="text-gray-400">Post as anonymous</label>
           </div>
-          <div className="flex items-center justify-end space-x-3">
+          <div>
+            <input
+              type="text"
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              placeholder="Gender"
+              className="w-full p-2 bg-dark-background rounded border border-dark-border focus:outline-none text-white"
+              maxLength={10}
+              required
+            />
+          </div>
+          <div>
+            <input
+              type="number"
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              placeholder="Age"
+              className="w-full p-2 bg-dark-background rounded border border-dark-border focus:outline-none text-white"
+              min={13}
+              max={120}
+              required
+            />
+          </div>
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={isAnonymous}
+                onChange={(e) => setIsAnonymous(e.target.checked)}
+                className="form-checkbox"
+              />
+              <span className="ml-2">Post as Anonymous</span>
+            </label>
+          </div>
+          <div className="flex justify-end space-x-4">
             <button
-              type="button"
-              className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded transition duration-300"
               onClick={handleSaveDraft}
+              type="button"
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-full text-white focus:outline-none"
+              disabled={isLoading}
             >
-              Save Draft
+              {isLoading ? 'Saving...' : 'Save Draft'}
             </button>
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded transition duration-300"
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-full text-white focus:outline-none"
+              disabled={isLoading}
             >
-              Post
+              {isLoading ? 'Submitting...' : 'Submit'}
             </button>
           </div>
         </form>
       )}
-      {showSuccessMessage && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white py-2 px-4 rounded-lg flex items-center space-x-2 shadow-md">
-          <FaCheckCircle />
-          <span>Confession posted successfully!</span>
-        </div>
-      )}
       {showModal && (
-        <AuthForm
-          onClose={() => setShowModal(false)}
-        />
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-75">
+          <AuthForm onClose={() => setShowModal(false)} />
+        </div>
       )}
     </div>
   );

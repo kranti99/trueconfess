@@ -68,7 +68,7 @@ const LeftSidebar = () => {
           </div>
         )}
       </nav>
-      {showAuthForm && <AuthForm closeModal={closeModal} mode={authMode} />}
+      {showAuthForm && <AuthForm closeModal={closeModal} mode={authMode} setMode={setAuthMode} />}
     </aside>
   );
 };

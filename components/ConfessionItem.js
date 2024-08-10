@@ -7,6 +7,9 @@ const ConfessionItem = ({ confession }) => {
       <p className="text-gray-400">{confession.content}</p>
       <div className="flex justify-between items-center mt-2 text-gray-500">
         <span>By {confession.nickname}</span>
+        <span>{confession.age} {confession.gender}</span>
+        <span>{confession.location}</span>
+        
         <span>{new Date(confession.date.toDate()).toLocaleDateString()}</span>
       </div>
     </div>

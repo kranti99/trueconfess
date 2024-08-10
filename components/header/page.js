@@ -98,7 +98,13 @@ export default function Header() {
           <FaGlobe className="text-2xl cursor-pointer hover:text-gray-400" />
         </nav>
       </div>
-      {showAuthForm && <AuthForm closeModal={closeModal} mode={authMode} />}
+      {showAuthForm && (
+        <AuthForm 
+          closeModal={closeModal} 
+          mode={authMode} 
+          setMode={setAuthMode} // Pass setMode as a prop
+        />
+      )}
     </header>
   );
 }

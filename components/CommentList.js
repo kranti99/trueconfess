@@ -6,7 +6,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import TimeAgo from './TimeAgo';
 import Avatar from 'react-avatar';
 import Modal from '@components/modal';
-import EditDropDown from './EditDropDown';
+import EditDropDown from './profile/EditDropDown';
 import parse from 'html-react-parser';
 import LikeButton from './LikeButton';
 import AuthForm from './AuthForm';

@@ -13,16 +13,6 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,  // Include if you use Analytics
 };
 
-// // Your web app's Firebase configuration
-// const firebaseConfig = {
-//   apiKey: 'AIzaSyBbToOjCe7zeehUfuAYI0ZmrWNLBzXvh7I',
-//   authDomain: 'trueconfess-a0af3.firebaseapp.com',
-//   projectId: 'trueconfess-a0af3',
-//   storageBucket: 'trueconfess-a0af3.appspot.com',
-//   messagingSenderId: '903564003097',
-//   appId: '1:903564003097:web:73985dc9269d98a1c2e788'
-// };
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 

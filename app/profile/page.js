@@ -9,7 +9,7 @@ import dynamic from 'next/dynamic';
 
 const Avatar = dynamic(() => import('react-avatar'), { ssr: false });
 const ClipLoader = dynamic(() => import('react-spinners/ClipLoader'), { ssr: false });
-const MyConfessionList = dynamic(() => import('@components/MyConfessionList'), { ssr: false });
+const MyConfessionList = dynamic(() => import('@components/profile/MyConfessionList'), { ssr: false });
 
 export default function Profile() {
   const [auth, setAuth] = useState(null);

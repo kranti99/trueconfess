@@ -2,16 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { getAuth } from 'firebase/auth';
+import { getAuth, signOut } from 'firebase/auth';
 import { addDoc, collection, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import { db } from '/firebase';
-
+import { useRouter } from 'next/navigation';
 import AuthForm from '@components/AuthForm';
 import * as Emoji from "quill-emoji";
 
 import 'react-quill/dist/quill.bubble.css';
 import 'quill-emoji/dist/quill-emoji.css';
-import { FaCheckCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
@@ -20,8 +20,33 @@ export default function CommentForm({ confessionId, replyTo }) {
   const [showModal, setShowModal] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showAuthForm, setShowAuthForm] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const router = useRouter();
   const auth = getAuth();
-  const user = auth.currentUser;
+  const MAX_WORD_COUNT = 200; // Set your word limit here
+  const MAX_SINGLE_WORD_LENGTH = 50; // Limit for single-word length
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setUser(user);
+    });
+
+    return () => unsubscribe();
+  }, [auth]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setUser(null);
+    router.push('/');
+  };
+
+  const closeModal = () => {
+    setShowAuthForm(false);
+  };
 
   useEffect(() => {
     let Quill;
@@ -35,24 +60,51 @@ export default function CommentForm({ confessionId, replyTo }) {
       ShortNameEmoji = require('quill-emoji').ShortNameEmoji;
       ToolbarEmoji = require('quill-emoji').ToolbarEmoji;
 
-      // Register the emoji module with Quill
       if (Quill) {
         Quill.register("modules/emoji", Emoji);
       }
     }
   }, []);
 
+  const validateComment = () => {
+    const wordCount = content.trim().split(/\s+/).length;
+    if (wordCount > MAX_WORD_COUNT) {
+      setErrorMessage(`Comment exceeds the maximum word limit of ${MAX_WORD_COUNT} words.`);
+      return false;
+    }
+
+    const words = content.trim().split(/\s+/);
+    for (let word of words) {
+      if (word.length > MAX_SINGLE_WORD_LENGTH) {
+        setErrorMessage(`Single word exceeds the maximum length of ${MAX_SINGLE_WORD_LENGTH} characters.`);
+        return false;
+      }
+    }
+
+    if (!content.trim()) {
+      setErrorMessage('Comment cannot be empty.');
+      return false;
+    }
+
+    return true;
+  };
+
   const publishComment = async () => {
     if (!user) {
-      setShowModal(true);
+      setShowAuthForm(true);
       return;
     }
+
+    if (!validateComment()) {
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'confessions', confessionId, 'comments'), {
         content,
         date: serverTimestamp(),
         userId: user.uid,
-        nickname: user.displayName,
+        nickname: isAnonymous ? 'Anonymous' : user.displayName,
         replyTo: replyTo || null,
       });
       await updateDoc(doc(db, 'confessions', confessionId), {
@@ -99,7 +151,18 @@ export default function CommentForm({ confessionId, replyTo }) {
                 onBlur={() => setIsFocused(content ? true : false)}
               />
               {isFocused && (
-                <div className="mt-2 flex justify-end">
+                <div className="mt-2 flex justify-between items-center">
+                  <div>
+                    <label className="text-white flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={isAnonymous}
+                        onChange={(e) => setIsAnonymous(e.target.checked)}
+                        className="mr-2"
+                      />
+                      Post as Anonymous
+                    </label>
+                  </div>
                   <button
                     type="button"
                     onClick={publishComment}
@@ -113,7 +176,17 @@ export default function CommentForm({ confessionId, replyTo }) {
           </div>
         </div>
       </form>
-      {showModal && <AuthForm closeModal={() => setShowModal(false)} />}
+
+      {errorMessage && (
+        <div className="fixed bottom-4 left-4 bg-red-500 text-white p-4 rounded flex items-center">
+          <FaExclamationCircle className="mr-2" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
+      {showAuthForm && (
+        <AuthForm closeModal={closeModal} mode={authMode} setMode={setAuthMode} />
+      )}
       {showSuccessMessage && (
         <div className="fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded flex items-center">
           <FaCheckCircle className="mr-2" />

@@ -85,11 +85,13 @@ const ConfessionList = () => {
                   <h2 className="text-sm font-semibold mb-0">{confession.nickname}</h2>
                   <TimeAgo timestamp={confession.date} />
                 </div>
+                
               </div>
               <h2 className="text-xl font-bold text-blue-500 hover:underline mb-4">
                 {confession.title}
               </h2>
               <div className="text-gray-300 mb-4">
+              <div>{confession.gender} {confession.age} {confession.location}</div>
                 {parse(truncateContent(confession.content, 200))}
               </div>
               <div className="flex items-center space-x-4 text-gray-400 mb-4">
@@ -101,23 +103,23 @@ const ConfessionList = () => {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                {confession.category && confession.category.length > 0 && (
-                  <div className="flex items-center">
-                    <span className="text-gray-400 text-xs font-semibold">Category:</span>
-                    {confession.category.map((cat, index) => (
-                      <Link key={index} href={`/category/${cat}`}>
-                        <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-md hover:bg-gray-600 transition duration-300 ml-2">
-                          {cat}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-                {confession.tags && confession.tags.length > 0 && (
+                  {confession.category && confession.category.length > 0 && (
+                    <div className="flex items-center">
+                      <span className="text-gray-400 text-xs font-semibold">Category:</span>
+                      {confession.category.map((cat, index) => (
+                        <Link key={index} href={`/category/${encodeURIComponent(cat)}`}>
+                          <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-md hover:bg-gray-600 transition duration-300 ml-2">
+                            {cat}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                 {confession.tags && confession.tags.length > 0 && (
                   <div className="flex items-center">
                     <span className="text-gray-400 text-xs font-semibold">Tags:</span>
                     {confession.tags.map((tag, index) => (
-                      <Link key={index} href={`/tags/${tag}`}>
+                      <Link key={index} href={`/tags/${encodeURIComponent(tag)}`}>
                         <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-md hover:bg-gray-600 transition duration-300 ml-2">
                           {tag}
                         </span>

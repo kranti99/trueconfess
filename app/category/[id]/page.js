@@ -1,14 +1,13 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '/firebase'; // Adjust the path according to your firebase config
+import { db } from '/firebase'; 
 import dynamic from "next/dynamic";
 import Link from 'next/link';
 import { FaThumbsUp, FaComment } from "react-icons/fa";
 import parse from "html-react-parser";
-import LoadingSpinner from '/components/LoadingSpinner'; // Ensure you have a loading spinner component
+import LoadingSpinner from '/components/LoadingSpinner'; 
 
 const Avatar = dynamic(() => import("react-avatar"), { ssr: false });
 const TimeAgo = dynamic(() => import("/components/TimeAgo"), { ssr: false });
@@ -95,9 +94,9 @@ const SingleCategoryPage = () => {
                       <div className="flex items-center">
                         <span className="text-gray-400 text-xs font-semibold">Category:</span>
                         {confession.category.map((cat, index) => (
-                          <Link key={index} href={`/category/${cat}`}>
+                          <Link key={index} href={`/category/${cat.value || cat}`}>
                             <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-md hover:bg-gray-600 transition duration-300 ml-2">
-                              {cat}
+                              {cat.label || cat}
                             </span>
                           </Link>
                         ))}
@@ -107,9 +106,9 @@ const SingleCategoryPage = () => {
                       <div className="flex items-center">
                         <span className="text-gray-400 text-xs font-semibold">Tags:</span>
                         {confession.tags.map((tag, index) => (
-                          <Link key={index} href={`/tags/${tag}`}>
+                          <Link key={index} href={`/tags/${tag.value || tag}`}>
                             <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-md hover:bg-gray-600 transition duration-300 ml-2">
-                              {tag}
+                              {tag.label || tag}
                             </span>
                           </Link>
                         ))}
