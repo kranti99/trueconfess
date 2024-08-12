@@ -5,9 +5,9 @@ import Link from "next/link";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "/firebase";
 import dynamic from "next/dynamic";
-import { FaThumbsUp, FaComment } from "react-icons/fa";
+import { FaThumbsUp, FaComment, FaMapMarkerAlt, FaUser, FaCalendarAlt } from "react-icons/fa";
 import parse from "html-react-parser";
-import LoadingSpinner from "@components/LoadingSpinner"; // Ensure the correct path
+import LoadingSpinner from "@components/LoadingSpinner";
 
 const Avatar = dynamic(() => import("react-avatar"), { ssr: false });
 const TimeAgo = dynamic(() => import("./TimeAgo"), { ssr: false });
@@ -64,7 +64,7 @@ const ConfessionList = () => {
 
   return (
     <div className="space-y-6 p-4 text-white">
-      <div className="flex justify-end space-x-4 mb-4 items-center">
+      <div className="flex justify-end space-x-4 mb-6 items-center">
         <span className="text-gray-400">Sort by:</span>
         <select
           value={sortType}
@@ -79,43 +79,46 @@ const ConfessionList = () => {
         <div key={confession.id} className="relative">
           <Link href={`/confession/${confession.id}`}>
             <div className="p-6 border bg-dark-background-light border-gray-700 rounded-lg shadow-md hover:bg-zinc-900 transition duration-300 cursor-pointer">
-              <div className="flex items-center mb-2">
-                <Avatar src={confession.avatar || '/default-avatar.png'} size="40" round />
+              <div className="flex items-center mb-4">
+                <Avatar src={confession.avatar || '/default-avatar.png'} size="50" round />
                 <div className="ml-4">
-                  <h2 className="text-sm font-semibold mb-0">{confession.nickname}</h2>
+                  <h2 className="text-lg font-semibold">{confession.nickname}</h2>
                   <TimeAgo timestamp={confession.date} />
                 </div>
-                
               </div>
-              <h2 className="text-xl font-bold text-blue-500 hover:underline mb-4">
+              <h2 className="text-2xl font-bold text-blue-500 hover:underline mb-4">
                 {confession.title}
               </h2>
-              <div className="text-gray-300 mb-4">
-              <div>{confession.gender} {confession.age} {confession.location}</div>
+              <div className="text-gray-300 mb-4 leading-relaxed">
                 {parse(truncateContent(confession.content, 200))}
               </div>
-              <div className="flex items-center space-x-4 text-gray-400 mb-4">
+              <div className="flex items-center text-gray-400 mb-4">
+                <FaMapMarkerAlt className="mr-2 text-red-500" /> {confession.location}
+                <FaUser className="ml-4 mr-2 text-purple-500" /> {confession.gender}
+                <FaCalendarAlt className="ml-4 mr-2 text-yellow-500" /> {confession.age} years old
+              </div>
+              <div className="flex items-center space-x-6 text-gray-400 mb-4">
                 <div className="flex items-center">
-                  <FaThumbsUp className="mr-1" /> {confession.likes}
+                  <FaThumbsUp className="mr-2 text-blue-500" /> {confession.likes}
                 </div>
                 <div className="flex items-center">
-                  <FaComment className="mr-1" /> {confession.commentCount}
+                  <FaComment className="mr-2 text-green-500" /> {confession.commentCount}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                  {confession.category && confession.category.length > 0 && (
-                    <div className="flex items-center">
-                      <span className="text-gray-400 text-xs font-semibold">Category:</span>
-                      {confession.category.map((cat, index) => (
-                        <Link key={index} href={`/category/${encodeURIComponent(cat)}`}>
-                          <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-md hover:bg-gray-600 transition duration-300 ml-2">
-                            {cat}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                 {confession.tags && confession.tags.length > 0 && (
+                {confession.category && confession.category.length > 0 && (
+                  <div className="flex items-center">
+                    <span className="text-gray-400 text-xs font-semibold">Category:</span>
+                    {confession.category.map((cat, index) => (
+                      <Link key={index} href={`/category/${encodeURIComponent(cat)}`}>
+                        <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-md hover:bg-gray-600 transition duration-300 ml-2">
+                          {cat}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+                {confession.tags && confession.tags.length > 0 && (
                   <div className="flex items-center">
                     <span className="text-gray-400 text-xs font-semibold">Tags:</span>
                     {confession.tags.map((tag, index) => (

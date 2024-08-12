@@ -1,221 +1,206 @@
-import React, { useState, useEffect } from 'react';
-import { FaSave, FaTimes } from 'react-icons/fa';
+import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
+import { doc, setDoc } from 'firebase/firestore'; // Import Firestore methods
+import { db } from '/firebase';
+import 'react-quill/dist/quill.snow.css';
+import 'quill-emoji/dist/quill-emoji.css';
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+
+const darkModeInputStyles = "w-full px-3 py-2 text-white bg-gray-700 rounded-lg focus:outline-none";
+const darkModeSelectStyles = {
+  control: (styles) => ({
+    ...styles,
+    backgroundColor: '#333',
+    borderColor: '#555',
+    color: '#fff',
+  }),
+  option: (styles, { isDisabled, isFocused, isSelected }) => {
+    const backgroundColor = isDisabled ? undefined : isSelected ? '#555' : isFocused ? '#444' : '#333';
+    const color = isDisabled ? '#ccc' : isSelected ? '#fff' : '#ccc';
+    return {
+      ...styles,
+      backgroundColor,
+      color,
+      cursor: isDisabled ? 'not-allowed' : 'default',
+      ':active': {
+        ...styles[':active'],
+        backgroundColor: !isDisabled ? (isSelected ? '#555' : '#444') : undefined,
+      },
+    };
+  },
+  input: (styles) => ({ ...styles, color: '#fff' }),
+  placeholder: (styles) => ({ ...styles, color: '#aaa' }),
+  singleValue: (styles) => ({ ...styles, color: '#fff' }),
+  multiValue: (styles) => ({ ...styles, backgroundColor: '#444', color: '#fff' }),
+  multiValueLabel: (styles) => ({ ...styles, color: '#fff' }),
+  multiValueRemove: (styles) => ({
+    ...styles,
+    color: '#fff',
+    ':hover': {
+      backgroundColor: '#555',
+      color: '#fff',
+    },
+  }),
+};
 
 export default function EditConfessionForm({
-  title,
-  setTitle,
-  content,
-  setContent,
-  age,
-  setAge,
-  location,
-  setLocation,
-  gender,
-  setGender,
-  tags,
-  setTags,
-  categories,
-  setCategories,
-  displayName,
-  setDisplayName,
-  onSave,
-  onCancel,
-  tagsOptions,
-  categoriesOptions,
+  editingConfessionId, editingTitle, editingContent, editingAge, editingLocation, editingGender,
+  editingTags, editingCategories, editingDisplayName, tags, categories, error, showSuccessMessage,
+  setEditingTitle, setEditingContent, setEditingAge, setEditingLocation, setEditingGender,
+  setEditingTags, setEditingCategories, setEditingDisplayName, handleSaveEdit, setEditingConfessionId,
+  username, updateConfessionList
 }) {
-  const [isAnonymous, setIsAnonymous] = useState(!displayName);
-  const [error, setError] = useState(null);
+  const [newlyCreatedTags, setNewlyCreatedTags] = useState([]);
 
-  const tagPattern = /^[a-zA-Z0-9]+$/;
+  const handleTitleChange = (e) => setEditingTitle(e.target.value.slice(0, 100)); // Limit title to 100 characters
+  const handleContentChange = (value) => setEditingContent(value);
+  const handleAgeChange = (e) => setEditingAge(Math.min(Math.max(e.target.value, 13), 120)); // Age limit 13-120
+  const handleLocationChange = (e) => setEditingLocation(e.target.value.slice(0, 50)); // Limit location to 50 characters
+  const handleGenderChange = (e) => setEditingGender(e.target.value);
 
-  const validateFields = () => {
-    if (!title || title.length > 100) {
-      setError('Title is required and should not exceed 100 characters.');
-      return false;
+  const handleTagsChange = (selectedOptions) =>
+    setEditingTags(selectedOptions.map(option => option.value));
+
+  const handleCategoriesChange = (selectedOptions) =>
+    setEditingCategories(selectedOptions.map(option => option.value));
+
+  const handleDisplayNameChange = (selectedOption) =>
+    setEditingDisplayName(selectedOption.value);
+
+  const handleCreateTag = async (inputValue) => {
+    if (!/^[a-zA-Z0-9]+$/.test(inputValue)) {
+      alert('Tags should only contain alphanumeric characters without spaces or special characters.');
+      return;
     }
-    if (!content || content.length > 1000) {
-      setError('Content is required and should not exceed 1000 characters.');
-      return false;
-    }
-    if (age && (isNaN(age) || age < 0 || age > 150)) {
-      setError('Please enter a valid age between 0 and 150.');
-      return false;
-    }
-    if (tags.some((tag) => !tagPattern.test(tag.label))) {
-      setError('Tags should not contain special characters or spaces.');
-      return false;
-    }
-    return true;
+    const newTag = { name: inputValue };
+    const newTagDocRef = doc(db, 'tags', inputValue);
+    await setDoc(newTagDocRef, newTag);
+    setNewlyCreatedTags(prevTags => [...prevTags, inputValue]); // Add the new tag to the local state
+    setEditingTags(prevTags => [...prevTags, inputValue]); // Add the new tag to selected tags
   };
 
-  const handleSave = () => {
-    if (validateFields()) {
-      onSave();
-    }
+  const saveEditHandler = async () => {
+    await handleSaveEdit(); // Call the original save function
+    updateConfessionList(); // Trigger a refresh of the confession list
   };
-
-  const handleTagChange = (newValue) => {
-    setTags(newValue.filter((tag) => tagPattern.test(tag.label)));
-  };
-
-  useEffect(() => {
-    setError(null);
-  }, [title, content, age, location, gender, tags, categories, displayName]);
 
   return (
-    <div className="edit-confession-form p-4 bg-gray-800 text-white rounded-lg">
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+    <div className="bg-gray-900 p-6 rounded-lg">
       <div className="mb-4">
-        <label className="block text-gray-400 text-sm mb-2" htmlFor="title">
-          Title
-        </label>
+        <label className="block text-white text-sm font-bold mb-2">Title</label>
         <input
           type="text"
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          maxLength="100"
-          className="w-full p-2 bg-gray-900 border border-gray-600 rounded"
+          value={editingTitle}
+          onChange={handleTitleChange}
+          className={darkModeInputStyles}
         />
       </div>
       <div className="mb-4">
-        <label className="block text-gray-400 text-sm mb-2" htmlFor="content">
-          Content
-        </label>
-        <textarea
-          id="content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          maxLength="1000"
-          rows="6"
-          className="w-full p-2 bg-gray-900 border border-gray-600 rounded"
+        <label className="block text-white text-sm font-bold mb-2">Content</label>
+        <ReactQuill
+          value={editingContent}
+          onChange={handleContentChange}
+          className="bg-gray-700 rounded-lg text-white"
+          modules={{
+            toolbar: {
+              container: [
+                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['bold', 'italic', 'underline'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'align': [] }],
+                ['link', 'image'],
+                ['clean']
+              ],
+              handlers: {
+                color: () => console.log('Color changed'),
+              }
+            }
+          }}
         />
       </div>
       <div className="mb-4">
-        <label className="block text-gray-400 text-sm mb-2" htmlFor="age">
-          Age
-        </label>
+        <label className="block text-white text-sm font-bold mb-2">Age</label>
         <input
           type="number"
-          id="age"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
-          min="0"
-          max="150"
-          className="w-full p-2 bg-gray-900 border border-gray-600 rounded"
+          value={editingAge}
+          onChange={handleAgeChange}
+          className={darkModeInputStyles}
+          min="13"
+          max="120"
         />
       </div>
       <div className="mb-4">
-        <label className="block text-gray-400 text-sm mb-2" htmlFor="location">
-          Location
-        </label>
+        <label className="block text-white text-sm font-bold mb-2">Location</label>
         <input
           type="text"
-          id="location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          maxLength="100"
-          className="w-full p-2 bg-gray-900 border border-gray-600 rounded"
+          value={editingLocation}
+          onChange={handleLocationChange}
+          className={darkModeInputStyles}
         />
       </div>
       <div className="mb-4">
-        <label className="block text-gray-400 text-sm mb-2" htmlFor="gender">
-          Gender
-        </label>
+        <label className="block text-white text-sm font-bold mb-2">Gender</label>
         <select
-          id="gender"
-          value={gender}
-          onChange={(e) => setGender(e.target.value)}
-          className="w-full p-2 bg-gray-900 border border-gray-600 rounded"
+          value={editingGender}
+          onChange={handleGenderChange}
+          className={darkModeInputStyles}
         >
-          <option value="">Select Gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-          <option value="Prefer not to say">Prefer not to say</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
         </select>
       </div>
       <div className="mb-4">
-        <label className="block text-gray-400 text-sm mb-2" htmlFor="tags">
-          Tags
-        </label>
+        <label className="block text-white text-sm font-bold mb-2">Tags</label>
         <CreatableSelect
-          id="tags"
           isMulti
-          value={tags}
-          onChange={handleTagChange}
-          options={tagsOptions}
-          className="w-full bg-gray-900 text-black"
+          value={tags.filter(tag => editingTags.includes(tag.value) || newlyCreatedTags.includes(tag.value))}
+          onChange={handleTagsChange}
+          options={[...tags, ...newlyCreatedTags.map(tag => ({ value: tag, label: tag }))]}
+          styles={darkModeSelectStyles}
+          onCreateOption={handleCreateTag}
         />
       </div>
       <div className="mb-4">
-        <label className="block text-gray-400 text-sm mb-2" htmlFor="categories">
-          Categories
-        </label>
+        <label className="block text-white text-sm font-bold mb-2">Categories</label>
         <Select
-          id="categories"
           isMulti
-          value={categories}
-          onChange={setCategories}
-          options={categoriesOptions}
-          className="w-full bg-gray-900 text-black"
+          value={categories.filter(category => editingCategories.includes(category.value))}
+          onChange={handleCategoriesChange}
+          options={categories}
+          styles={darkModeSelectStyles}
         />
       </div>
-      <div className="mb-4 flex items-center">
-        <label className="block text-gray-400 text-sm mr-2">Post as:</label>
-        <div className="flex items-center space-x-4">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              checked={isAnonymous}
-              onChange={() => {
-                setIsAnonymous(true);
-                setDisplayName('');
-              }}
-              className="mr-1"
-            />
-            Anonymous
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              checked={!isAnonymous}
-              onChange={() => setIsAnonymous(false)}
-              className="mr-1"
-            />
-            Nickname
-          </label>
-        </div>
+      <div className="mb-4">
+        <label className="block text-white text-sm font-bold mb-2">Display Name</label>
+        <Select
+          value={{ value: editingDisplayName, label: editingDisplayName }}
+          onChange={handleDisplayNameChange}
+          options={[
+            { value: 'anonymous', label: 'Anonymous' },
+            { value: username, label: username },
+          ]}
+          styles={darkModeSelectStyles}
+        />
       </div>
-      {!isAnonymous && (
-        <div className="mb-4">
-          <label className="block text-gray-400 text-sm mb-2" htmlFor="displayName">
-            Nickname
-          </label>
-          <input
-            type="text"
-            id="displayName"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            maxLength="30"
-            className="w-full p-2 bg-gray-900 border border-gray-600 rounded"
-          />
-        </div>
-      )}
-      <div className="flex items-center justify-end space-x-4">
+      {error && <p className="text-red-500 mt-4">{error}</p>}
+      {showSuccessMessage && <p className="text-green-500 mt-4">Confession updated successfully!</p>}
+      <div className="flex justify-end mt-6">
         <button
-          onClick={handleSave}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center"
+          onClick={() => setEditingConfessionId(null)}
+          className="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600"
         >
-          <FaSave className="mr-2" /> Save
+          Cancel
         </button>
         <button
-          onClick={onCancel}
-          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded flex items-center"
+          onClick={saveEditHandler}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
-          <FaTimes className="mr-2" /> Cancel
+          Save
         </button>
       </div>
     </div>

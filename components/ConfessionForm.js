@@ -11,6 +11,7 @@ import 'react-quill/dist/quill.snow.css';
 import 'quill-emoji/dist/quill-emoji.css';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
+import { displayName } from 'react-quill';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
@@ -133,7 +134,7 @@ const ConfessionForm = () => {
         tags: selectedTags.map(tag => tag.value),
         date: serverTimestamp(),
         userId: user.uid,
-        nickname: isAnonymous ? 'Anonymous' : user.displayName || 'Anonymous',
+        displayName: isAnonymous ? 'Anonymous' : user.displayName || 'Anonymous',
         likes: 0,
         commentCount: 0,
         location: location.trim(),
@@ -166,7 +167,7 @@ const ConfessionForm = () => {
         tags: selectedTags.map(tag => tag.value),
         date: serverTimestamp(),
         userId: user.uid,
-        nickname: isAnonymous ? 'Anonymous' : user.displayName || 'Anonymous',
+        displayName: isAnonymous ? 'Anonymous' : user.displayName || 'Anonymous',
         likes: 0,
         commentCount: 0,
         isDraft: true,

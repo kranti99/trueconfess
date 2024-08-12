@@ -8,7 +8,7 @@ import CommentForm from '@components/CommentForm';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import Avatar from 'react-avatar';
-import { FaThumbsUp, FaComment } from 'react-icons/fa';
+import { FaThumbsUp, FaComment, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaTag, FaFolder } from 'react-icons/fa';
 import TimeAgo from '@components/TimeAgo';
 import parse from 'html-react-parser';
 import { getAuth } from 'firebase/auth';
@@ -114,10 +114,10 @@ export default function ConfessionDetail() {
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div className="space-y-4 mt-16 text-white">
+    <div className="space-y-6 mt-16 text-white">
       {confession && (
         <>
-          <div className="p-10 bg-dark-background-light rounded shadow-lg">
+          <div className="p-8 bg-dark-background-light rounded-lg shadow-lg">
             <div className="flex items-start space-x-4 mb-4">
               {!confession.anonymous && (
                 <Avatar 
@@ -132,39 +132,69 @@ export default function ConfessionDetail() {
                   <p className="font-bold text-base">
                     {confession.anonymous ? 'Anonymous User' : confession.nickname}
                   </p>
-                  <TimeAgo timestamp={confession.date} />
+                  <span className="flex items-center">
+                    <FaCalendarAlt className="text-yellow-500" />
+                    <TimeAgo timestamp={confession.date} className="ml-2" />
+                  </span>
                 </div>
-                <h2 className="text-xl font-semibold text-white mt-2">{confession.title}</h2>
+                <h2 className="text-2xl font-semibold text-blue-500 mt-2">{confession.title}</h2>
               </div>
             </div>
-            <div className="text-gray-300 mb-4">
+            <div className="text-gray-300 leading-relaxed mb-4">
               {parse(confession.content)}
             </div>
+            <div className="text-sm text-gray-400 flex flex-wrap gap-4 mb-4">
+              {confession.location && (
+                <div className="flex items-center">
+                  <FaMapMarkerAlt className="text-red-500 mr-2" /> {confession.location}
+                </div>
+              )}
+              {confession.gender && (
+                <div className="flex items-center">
+                  <FaUser className="text-purple-500 mr-2" /> {confession.gender}
+                </div>
+              )}
+              {confession.age && (
+                <div className="flex items-center">
+                  <FaCalendarAlt className="text-yellow-500 mr-2" /> {confession.age} years old
+                </div>
+              )}
+            </div>
             <div className="text-sm text-gray-400 flex space-x-4 mb-4">
-              <div>
-                <strong>Categories: </strong>
-                {confession.categories?.map((cat) => (
-                  <a
-                    key={cat}
-                    href={`/category/${cat}`}
-                    className="text-blue-500 hover:underline"
-                  >
-                    {cat}
-                  </a>
-                )) || 'None'}
-              </div>
-              <div>
-                <strong>Tags: </strong>
-                {confession.tags?.map((tag) => (
-                  <a
-                    key={tag}
-                    href={`/tag/${tag}`}
-                    className="text-blue-500 hover:underline"
-                  >
-                    {tag}
-                  </a>
-                )) || 'None'}
-              </div>
+              {confession.categories?.length > 0 && (
+                <div className="flex items-center">
+                  <FaFolder className="mr-2 text-blue-500" />
+                  <strong>Categories:</strong>
+                  <div className="flex space-x-2 ml-2">
+                    {confession.categories.map((cat) => (
+                      <a
+                        key={cat}
+                        href={`/category/${cat}`}
+                        className="text-blue-500 hover:underline"
+                      >
+                        {cat}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {confession.tags?.length > 0 && (
+                <div className="flex items-center">
+                  <FaTag className="mr-2 text-green-500" />
+                  <strong>Tags:</strong>
+                  <div className="flex space-x-2 ml-2">
+                    {confession.tags.map((tag) => (
+                      <a
+                        key={tag}
+                        href={`/tag/${tag}`}
+                        className="text-blue-500 hover:underline"
+                      >
+                        {tag}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="text-sm text-gray-400 flex space-x-4">
               <button

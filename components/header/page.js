@@ -47,7 +47,7 @@ export default function Header() {
           <SearchComponent />
         </div>
         <nav className="flex items-center space-x-4">
-          <FaBell className="text-2xl cursor-pointer hover:text-gray-400" />
+          {/* <FaBell className="text-2xl cursor-pointer hover:text-gray-400" /> */}
           {user ? (
             <>
               <div className="relative">
@@ -95,7 +95,7 @@ export default function Header() {
               </button>
             </>
           )}
-          <FaGlobe className="text-2xl cursor-pointer hover:text-gray-400" />
+          
         </nav>
       </div>
       {showAuthForm && (
