@@ -6,12 +6,10 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { addDoc, collection, serverTimestamp, getDocs, doc, setDoc } from 'firebase/firestore';
 import { db } from '/firebase';
 import { FaCheckCircle } from 'react-icons/fa';
-import AuthForm from '@components/AuthForm';
 import 'react-quill/dist/quill.snow.css';
 import 'quill-emoji/dist/quill-emoji.css';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
-import { displayName } from 'react-quill';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
@@ -30,7 +28,6 @@ const darkModeSelectStyles = {
       backgroundColor,
       color,
       cursor: isDisabled ? 'not-allowed' : 'default',
-
       ':active': {
         ...styles[':active'],
         backgroundColor: !isDisabled ? (isSelected ? '#555' : '#444') : undefined,
@@ -246,132 +243,156 @@ const ConfessionForm = () => {
   return (
     <div className="p-6 bg-dark-background-light rounded-lg text-white shadow-md max-w-3xl mx-auto">
       {showSuccessMessage && (
-        <div className="flex items-center bg-green-500 p-4 rounded mb-4">
-          <FaCheckCircle className="mr-2" />
-          <span>Your confession has been submitted successfully!</span>
+        <div className="bg-green-500 text-white p-4 rounded-md mb-6 flex items-center">
+          <FaCheckCircle className="mr-2" /> Confession posted successfully!
         </div>
       )}
-      {!showForm && (
-        <div className="text-center">
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-full text-white focus:outline-none"
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label htmlFor="title" className="block text-sm font-bold mb-2">Title</label>
+          <input
+            type="text"
+            id="title"
+            className="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:bg-gray-600"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={100} // Limit the title length
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="categories" className="block text-sm font-bold mb-2">Categories</label>
+          <Select
+            id="categories"
+            options={categories}
+            isMulti
+            value={selectedCategories}
+            onChange={setSelectedCategories}
+            styles={darkModeSelectStyles}
+            className="text-dark-text" // This helps with the font color inside the select
+            placeholder="Select categories..."
+            theme={(theme) => ({
+              ...theme,
+              colors: {
+                ...theme.colors,
+                primary25: '#444',
+                primary: '#666',
+              },
+            })}
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="tags" className="block text-sm font-bold mb-2">Tags</label>
+          <CreatableSelect
+            id="tags"
+            options={tags}
+            isMulti
+            value={selectedTags}
+            onChange={setSelectedTags}
+            onCreateOption={handleCreateTag}
+            styles={darkModeSelectStyles}
+            className="text-dark-text" // This helps with the font color inside the select
+            placeholder="Select or create tags..."
+            theme={(theme) => ({
+              ...theme,
+              colors: {
+                ...theme.colors,
+                primary25: '#444',
+                primary: '#666',
+              },
+            })}
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="gender" className="block text-sm font-bold mb-2">Gender</label>
+          <select
+            id="gender"
+            className="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:bg-gray-600"
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
           >
-            Write Confession
+            <option value="">Select gender (optional)</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
+        <div className="mb-4">
+          <label htmlFor="age" className="block text-sm font-bold mb-2">Age</label>
+          <input
+            type="number"
+            id="age"
+            className="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:bg-gray-600"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            min={0}
+            placeholder="Enter age (optional)"
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="location" className="block text-sm font-bold mb-2">Location</label>
+          <input
+            type="text"
+            id="location"
+            className="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:bg-gray-600"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            maxLength={100} // Limit the location length
+            placeholder="Enter location (optional)"
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="content" className="block text-sm font-bold mb-2">Confession</label>
+          <ReactQuill
+            id="content"
+            value={content}
+            onChange={setContent}
+            modules={modules}
+            className="bg-gray-700 text-white rounded"
+          />
+        </div>
+        <div className="flex items-center justify-between mb-4">
+          <label className="flex items-center text-sm">
+            <input
+              type="checkbox"
+              className="form-checkbox h-4 w-4 text-gray-600"
+              checked={isAnonymous}
+              onChange={(e) => setIsAnonymous(e.target.checked)}
+            />
+            <span className="ml-2">Post as Anonymous</span>
+          </label>
+        </div>
+        <div className="flex justify-between">
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Posting...' : 'Post Confession'}
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveDraft}
+            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Saving...' : 'Save Draft'}
           </button>
         </div>
-      )}
-      {showForm && (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Title"
-              className="w-full p-2 bg-dark-background rounded border border-dark-border focus:outline-none text-white"
-              maxLength={50}
-              required
-            />
-          </div>
-          <div>
-            <ReactQuill
-              value={content}
-              onChange={setContent}
-              placeholder="Write your confession here..."
-              className="bg-dark-background text-white rounded border border-dark-border"
-              modules={modules}
-              theme="snow"
-            />
-          </div>
-          <div>
-            <Select
-              options={categories}
-              value={selectedCategories}
-              onChange={setSelectedCategories}
-              isMulti
-              placeholder="Select Categories"
-              styles={darkModeSelectStyles}
-            />
-          </div>
-          <div>
-            <CreatableSelect
-              isMulti
-              value={selectedTags}
-              onChange={setSelectedTags}
-              onCreateOption={handleCreateTag}
-              options={tags}
-              placeholder="Add or Select Tags"
-              styles={darkModeSelectStyles}
-            />
-          </div>
-          <div>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Location"
-              className="w-full p-2 bg-dark-background rounded border border-dark-border focus:outline-none text-white"
-              maxLength={30}
-              required
-            />
-          </div>
-          <div>
-            <input
-              type="text"
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              placeholder="Gender"
-              className="w-full p-2 bg-dark-background rounded border border-dark-border focus:outline-none text-white"
-              maxLength={10}
-              required
-            />
-          </div>
-          <div>
-            <input
-              type="number"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              placeholder="Age"
-              className="w-full p-2 bg-dark-background rounded border border-dark-border focus:outline-none text-white"
-              min={13}
-              max={120}
-              required
-            />
-          </div>
-          <div className="flex items-center space-x-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={isAnonymous}
-                onChange={(e) => setIsAnonymous(e.target.checked)}
-                className="form-checkbox"
-              />
-              <span className="ml-2">Post as Anonymous</span>
-            </label>
-          </div>
-          <div className="flex justify-end space-x-4">
-            <button
-              onClick={handleSaveDraft}
-              type="button"
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-full text-white focus:outline-none"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Saving...' : 'Save Draft'}
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-full text-white focus:outline-none"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Submitting...' : 'Submit'}
-            </button>
-          </div>
-        </form>
-      )}
+      </form>
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-75">
-          <AuthForm onClose={() => setShowModal(false)} />
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-md">
+            <h2 className="text-lg font-bold mb-4">Authentication Required</h2>
+            <p className="mb-4">Please sign in to post your confession.</p>
+            <button
+              onClick={() => setShowModal(false)}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
     </div>
