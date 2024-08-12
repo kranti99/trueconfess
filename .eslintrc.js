@@ -29,6 +29,7 @@ module.exports = {
     'import/extensions': 'off',
     'react/prop-types': 'off',
     'jsx-a11y/anchor-is-valid': 'off',
+    'react/no-unescaped-entities': 'off',
   },
   settings: {
     react: {
