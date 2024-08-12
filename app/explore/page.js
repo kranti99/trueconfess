@@ -50,7 +50,7 @@ const ExplorePage = () => {
   }, []);
 
   return (
-    <div className="p-4 text-white mt-12 space-y-10">
+    <div className="p-4 pl-0 pr-0 text-white mt-12 space-y-10">
       <h1 className="text-4xl font-extrabold mb-6 text-center">Explore Confessions</h1>
 
       {loadingConfessions && loadingCategories && loadingTags ? (
