@@ -121,10 +121,8 @@ export default function CommentForm({ confessionId, replyTo }) {
 
   const modules = {
     toolbar: [
-      [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{ 'color': [] }, { 'background': [] }],
       [{ 'align': [] }],
       ['emoji'],
       ['clean']

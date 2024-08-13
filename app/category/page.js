@@ -1,75 +1,64 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '/firebase';
-import LoadingSpinner from '/components/LoadingSpinner'; // Ensure this component exists or create one
+import LoadingSpinner from '/components/LoadingSpinner'; 
+import Categories from '@components/explore/Categories';
+import Tags from '@components/explore/Tags';
 
 const CategoryArchive = () => {
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [loadingTags, setLoadingTags] = useState(true);
 
   useEffect(() => {
-    const fetchCategoriesAndTags = async () => {
+    const fetchCategories = async () => {
       try {
-        const categoryCollection = collection(db, 'categories');
-        const tagCollection = collection(db, 'tags');
-
-        const categorySnapshot = await getDocs(categoryCollection);
-        const tagSnapshot = await getDocs(tagCollection);
-
+        const categorySnapshot = await getDocs(collection(db, 'categories'));
         const categoryData = categorySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
+        setCategories(categoryData);
+      } catch (error) {
+        console.error('Error fetching categories: ', error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
 
+    const fetchTags = async () => {
+      try {
+        const tagSnapshot = await getDocs(collection(db, 'tags'));
         const tagData = tagSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
-
-        setCategories(categoryData);
         setTags(tagData);
-        setLoading(false);
       } catch (error) {
-        setError(error.message);
-        setLoading(false);
+        console.error('Error fetching tags: ', error);
+      } finally {
+        setLoadingTags(false);
       }
     };
 
-    fetchCategoriesAndTags();
+    fetchCategories();
+    fetchTags();
   }, []);
-
-  if (loading) return <LoadingSpinner />;
-  if (error) return <p className="text-red-500">{error}</p>;
 
   return (
     <div className="p-4 text-white mt-12">
-      <h1 className="text-3xl font-bold mb-6">Categories</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categories.map((category) => (
-          <Link key={category.id} href={`/category/${category.id}`}>
-            <div className="p-4 border bg-dark-background-light border-gray-700 rounded-lg shadow-md hover:bg-zinc-900 transition duration-300">
-              <h2 className="text-xl font-bold">{category.name}</h2>
-              <p className="text-gray-400">{category.description}</p>
-              <p className="text-gray-500">Confessions: {category.confessionCount}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
-      <h1 className="text-3xl font-bold my-6">Tags</h1>
-      <div className="flex flex-wrap gap-4">
-        {tags.map((tag) => (
-          <Link key={tag.id} href={`/tags/${tag.name}`}>
-            <span className="bg-gray-700 text-gray-300 text-sm px-3 py-1 rounded-md hover:bg-gray-600 transition duration-300">
-              {tag.name}
-            </span>
-          </Link>
-        ))}
-      </div>
+      {loadingCategories || loadingTags ? (
+        <LoadingSpinner />
+      ) : (
+        <>
+          <Categories categories={categories} loading={loadingCategories} />
+
+          <Tags tags={tags} loading={loadingTags} />
+        </>
+      )}
     </div>
   );
 };

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "/firebase";
 import dynamic from "next/dynamic";
-import { FaThumbsUp, FaComment, FaMapMarkerAlt, FaUser, FaCalendarAlt } from "react-icons/fa";
+import { FaThumbsUp, FaComment, FaMapMarkerAlt, FaVenusMars, FaCalendarAlt } from "react-icons/fa";
 import parse from "html-react-parser";
 import LoadingSpinner from "@components/LoadingSpinner";
 
@@ -63,7 +63,7 @@ const ConfessionList = () => {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="space-y-6 p-4 text-white">
+    <div className="space-y-6 p-0 text-white">
       <div className="flex justify-end space-x-4 mb-6 items-center">
         <span className="text-gray-400">Sort by:</span>
         <select
@@ -82,30 +82,32 @@ const ConfessionList = () => {
               <div className="flex items-center mb-4">
                 <Avatar src={confession.avatar || '/default-avatar.png'} size="50" round />
                 <div className="ml-4">
-                  <h2 className="text-lg font-semibold">{confession.nickname}</h2>
+                  <h2 className="text-lg font-semibold mb-0">{confession.nickname}</h2>
                   <TimeAgo timestamp={confession.date} />
                 </div>
               </div>
-              <h2 className="text-2xl font-bold text-blue-500 hover:underline mb-4">
-                {confession.title}
-              </h2>
-              <div className="text-gray-300 mb-4 leading-relaxed">
-                {parse(truncateContent(confession.content, 200))}
-              </div>
-              <div className="flex items-center text-gray-400 mb-4">
-                <FaMapMarkerAlt className="mr-2 text-red-500" /> {confession.location}
-                <FaUser className="ml-4 mr-2 text-purple-500" /> {confession.gender}
-                <FaCalendarAlt className="ml-4 mr-2 text-yellow-500" /> {confession.age} years old
-              </div>
-              <div className="flex items-center space-x-6 text-gray-400 mb-4">
-                <div className="flex items-center">
-                  <FaThumbsUp className="mr-2 text-blue-500" /> {confession.likes}
+    <div className="flex items-center text-gray-400 mb-2">
+                  {confession.location && (
+                    <div className="flex items-center">
+                      <FaMapMarkerAlt className="mr-2 text-red-500" />
+                      {confession.location}
+                    </div>
+                  )}
+                  {confession.gender && (
+                    <div className="flex items-center ml-4">
+                      <FaVenusMars className="mr-2 text-purple-500" />
+                      {confession.gender}
+                    </div>
+                  )}
+                  {confession.age && (
+                    <div className="flex items-center ml-4">
+                      <FaCalendarAlt className="mr-2 text-yellow-500" />
+                      {confession.age} years old
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center">
-                  <FaComment className="mr-2 text-green-500" /> {confession.commentCount}
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
+
+              <div className="flex flex-wrap gap-2 mb-6">
                 {confession.category && confession.category.length > 0 && (
                   <div className="flex items-center">
                     <span className="text-gray-400 text-xs font-semibold">Category:</span>
@@ -130,6 +132,20 @@ const ConfessionList = () => {
                     ))}
                   </div>
                 )}
+              </div>
+              <h2 className="text-2xl font-bold text-blue-500 hover:underline mb-4">
+                {confession.title}
+              </h2>
+              <div className="text-gray-300 mb-4 leading-relaxed">
+                {parse(truncateContent(confession.content, 200))}
+              </div>
+              <div className="flex items-center space-x-6 text-gray-400 mb-4">
+                <div className="flex items-center">
+                  <FaThumbsUp className="mr-2 text-blue-500" /> {confession.likes}
+                </div>
+                <div className="flex items-center">
+                  <FaComment className="mr-2 text-green-500" /> {confession.commentCount}
+                </div>
               </div>
             </div>
           </Link>

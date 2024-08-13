@@ -83,7 +83,7 @@ export default function ConfessionItem({ confession, onDelete, username }) {
 
   return (
     <div className="confession-item bg-gray-800 p-4 rounded-lg mb-4">
-      {username}
+      
       {editingConfessionId === confession.id ? (
         <EditConfessionForm
           editingConfessionId={editingConfessionId}

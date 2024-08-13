@@ -7,7 +7,7 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import AuthForm from '@components/AuthForm';
 import SearchComponent from '@components/header/SearchComponent';
-import { FaHome, FaUserCircle, FaBell, FaGlobe } from 'react-icons/fa';
+import { FaUserCircle } from 'react-icons/fa';
 
 export default function Header() {
   const router = useRouter();
@@ -15,6 +15,8 @@ export default function Header() {
   const [showAuthForm, setShowAuthForm] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -34,20 +36,47 @@ export default function Header() {
     setShowAuthForm(false);
   };
 
+  const controlHeader = () => {
+    if (typeof window !== 'undefined') {
+      if (window.scrollY > lastScrollY) {
+        // If scrolling down, hide the header
+        setIsVisible(false);
+      } else {
+        // If scrolling up, show the header
+        setIsVisible(true);
+      }
+
+      setLastScrollY(window.scrollY);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('scroll', controlHeader);
+
+      // Cleanup function to remove the listener
+      return () => {
+        window.removeEventListener('scroll', controlHeader);
+      };
+    }
+  }, [lastScrollY]);
+
   return (
-    <header className="bg-dark-background-light text-white fixed top-0 w-full z-50 shadow-lg">
+    <header
+      className={`bg-dark-background-light text-white fixed top-0 w-full z-50 shadow-lg transition-transform duration-300 ${
+        isVisible ? 'transform translate-y-0' : 'transform -translate-y-full'
+      }`}
+    >
       <div className="container mx-auto px-4 py-2 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Link href="/" className="text-2xl font-bold text-red-600">
+          <Link href="/" className="text-xl mb:text-2xl font-bold text-red-600">
             TrueConfess
           </Link>
-          <FaHome className="text-2xl cursor-pointer hover:text-gray-400" />
         </div>
         <div className="flex-1 mx-4">
           <SearchComponent />
         </div>
         <nav className="flex items-center space-x-4">
-          {/* <FaBell className="text-2xl cursor-pointer hover:text-gray-400" /> */}
           {user ? (
             <>
               <div className="relative">
@@ -95,7 +124,6 @@ export default function Header() {
               </button>
             </>
           )}
-          
         </nav>
       </div>
       {showAuthForm && (

@@ -35,13 +35,33 @@ const ExplorePage = () => {
     };
 
     const fetchCategories = async () => {
-      // Replace with actual Firestore fetch logic
-      setLoadingCategories(false);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'categories'));
+        const categoriesData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error('Error fetching categories: ', error);
+      } finally {
+        setLoadingCategories(false);
+      }
     };
 
     const fetchTags = async () => {
-      // Replace with actual Firestore fetch logic
-      setLoadingTags(false);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'tags'));
+        const tagsData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setTags(tagsData);
+      } catch (error) {
+        console.error('Error fetching tags: ', error);
+      } finally {
+        setLoadingTags(false);
+      }
     };
 
     fetchConfessions();
@@ -53,7 +73,7 @@ const ExplorePage = () => {
     <div className="p-4 pl-0 pr-0 text-white mt-12 space-y-10">
       <h1 className="text-4xl font-extrabold mb-6 text-center">Explore Confessions</h1>
 
-      {loadingConfessions && loadingCategories && loadingTags ? (
+      {loadingConfessions || loadingCategories || loadingTags ? (
         <LoadingSpinner />
       ) : (
         <>

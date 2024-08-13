@@ -8,7 +8,7 @@ import CommentForm from '@components/CommentForm';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import Avatar from 'react-avatar';
-import { FaThumbsUp, FaComment, FaMapMarkerAlt, FaUser, FaCalendarAlt, FaTag, FaFolder } from 'react-icons/fa';
+import { FaThumbsUp, FaComment, FaMapMarkerAlt, FaVenusMars, FaCalendarAlt, FaTag, FaFolder } from 'react-icons/fa';
 import TimeAgo from '@components/TimeAgo';
 import parse from 'html-react-parser';
 import { getAuth } from 'firebase/auth';
@@ -128,22 +128,18 @@ export default function ConfessionDetail() {
                 />
               )}
               <div>
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <p className="font-bold text-base">
+                <div className="text-sm text-gray-500">
+                  <p className="font-bold text-base mb-0">
                     {confession.anonymous ? 'Anonymous User' : confession.nickname}
                   </p>
-                  <span className="flex items-center">
-                    <FaCalendarAlt className="text-yellow-500" />
+                  <div className="flex items-center pl-0">
+                    <FaCalendarAlt className="text-yellow-500 pr-1" />
                     <TimeAgo timestamp={confession.date} className="ml-2" />
-                  </span>
+                  </div>
                 </div>
-                <h2 className="text-2xl font-semibold text-blue-500 mt-2">{confession.title}</h2>
               </div>
             </div>
-            <div className="text-gray-300 leading-relaxed mb-4">
-              {parse(confession.content)}
-            </div>
-            <div className="text-sm text-gray-400 flex flex-wrap gap-4 mb-4">
+            <div className="text-sm text-gray-400 flex flex-wrap gap-4 mb-2">
               {confession.location && (
                 <div className="flex items-center">
                   <FaMapMarkerAlt className="text-red-500 mr-2" /> {confession.location}
@@ -151,7 +147,7 @@ export default function ConfessionDetail() {
               )}
               {confession.gender && (
                 <div className="flex items-center">
-                  <FaUser className="text-purple-500 mr-2" /> {confession.gender}
+                  <FaVenusMars className="text-purple-500 mr-2" /> {confession.gender}
                 </div>
               )}
               {confession.age && (
@@ -160,7 +156,7 @@ export default function ConfessionDetail() {
                 </div>
               )}
             </div>
-            <div className="text-sm text-gray-400 flex space-x-4 mb-4">
+            <div className="text-sm text-gray-400 flex space-x-4 mb-6">
               {confession.categories?.length > 0 && (
                 <div className="flex items-center">
                   <FaFolder className="mr-2 text-blue-500" />
@@ -196,6 +192,12 @@ export default function ConfessionDetail() {
                 </div>
               )}
             </div>
+            <h2 className="text-2xl font-semibold text-blue-500 mt-2">{confession.title}</h2>
+
+            <div className="text-gray-300 leading-relaxed mb-4">
+              {parse(confession.content)}
+            </div>
+            
             <div className="text-sm text-gray-400 flex space-x-4">
               <button
                 className={`flex items-center space-x-1 ${userLikes[id] ? 'text-blue-500' : 'text-gray-400'} hover:text-white`}

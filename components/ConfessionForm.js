@@ -227,8 +227,6 @@ const ConfessionForm = () => {
 
   const modules = {
     toolbar: [
-      [{ 'header': '1' }, { 'header': '2' }],
-      [{ size: [] }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
       [{ 'align': [] }],
