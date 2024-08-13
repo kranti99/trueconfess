@@ -16,9 +16,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-       <Head>
+       <head>
         <meta name="google-site-verification" content="YqBu1NmdPSIaYbA9gvZKILnfCH2CMUWMMcfgXJoPRu4" />
-      </Head>
+      </head>
       <body className={inter.className}>
         <Header />
         <div className='relative flex justify-center'>
