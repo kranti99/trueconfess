@@ -4,6 +4,7 @@ import Header from "../components/header/page";
 import Footer from "../components/footer/page";
 import LeftSidebar from '../components/LeftSidebar';
 import "./globals.css";
+import Head from 'next/head'
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,6 +16,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+       <Head>
+        <meta name="google-site-verification" content="YqBu1NmdPSIaYbA9gvZKILnfCH2CMUWMMcfgXJoPRu4" />
+      </Head>
       <body className={inter.className}>
         <Header />
         <div className='relative flex justify-center'>
