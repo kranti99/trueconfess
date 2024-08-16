@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { auth } from '/firebase';
 import { signOut } from 'firebase/auth';
@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import AuthForm from '@components/AuthForm';
 import SearchComponent from '@components/header/SearchComponent';
 import { FaUserCircle } from 'react-icons/fa';
+import { throttle } from 'lodash';
 
 export default function Header() {
   const router = useRouter();
@@ -36,34 +37,29 @@ export default function Header() {
     setShowAuthForm(false);
   };
 
-  const controlHeader = () => {
-    if (typeof window !== 'undefined') {
+  const controlHeader = useCallback(
+    throttle(() => {
       if (window.scrollY > lastScrollY) {
-        // If scrolling down, hide the header
         setIsVisible(false);
       } else {
-        // If scrolling up, show the header
         setIsVisible(true);
       }
-
       setLastScrollY(window.scrollY);
-    }
-  };
+    }, 200),
+    [lastScrollY]
+  );
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.addEventListener('scroll', controlHeader);
-
-      // Cleanup function to remove the listener
-      return () => {
-        window.removeEventListener('scroll', controlHeader);
-      };
-    }
-  }, [lastScrollY]);
+    window.addEventListener('scroll', controlHeader);
+    return () => {
+      window.removeEventListener('scroll', controlHeader);
+    };
+  }, [controlHeader]);
 
   return (
+    <div>
     <header
-      className={`bg-dark-background-light text-white fixed top-0 w-full z-50 shadow-lg transition-transform duration-300 ${
+      className={`bg-dark-background-light text-white relative top-0 w-full z-50 shadow-lg transition-transform duration-300 ${
         isVisible ? 'transform translate-y-0' : 'transform -translate-y-full'
       }`}
     >
@@ -78,33 +74,33 @@ export default function Header() {
         </div>
         <nav className="flex items-center space-x-4">
           {user ? (
-            <>
-              <div className="relative">
-                <FaUserCircle
-                  className="text-2xl cursor-pointer hover:text-gray-400"
-                  onClick={() => setShowDropdown(!showDropdown)}
-                />
-                {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg">
-                    <Link
-                      href="/profile"
-                      className="block px-4 py-2 hover:bg-gray-200"
-                    >
-                      View Profile
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-200"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </>
+            <div className="relative">
+              <FaUserCircle
+                aria-label="User Menu"
+                className="text-2xl cursor-pointer hover:text-gray-400"
+                onClick={() => setShowDropdown(!showDropdown)}
+              />
+              {showDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg">
+                  <Link
+                    href="/profile"
+                    className="block px-4 py-2 hover:bg-gray-200"
+                  >
+                    View Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-200"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <button
+                aria-label="Login"
                 onClick={() => {
                   setAuthMode('login');
                   setShowAuthForm(true);
@@ -114,6 +110,7 @@ export default function Header() {
                 Login
               </button>
               <button
+                aria-label="Sign Up"
                 onClick={() => {
                   setAuthMode('signup');
                   setShowAuthForm(true);
@@ -126,13 +123,19 @@ export default function Header() {
           )}
         </nav>
       </div>
-      {showAuthForm && (
-        <AuthForm 
-          closeModal={closeModal} 
-          mode={authMode} 
-          setMode={setAuthMode} // Pass setMode as a prop
-        />
-      )}
+      <div>
+      
+      </div>
     </header>
+    {showAuthForm && (
+       
+            <AuthForm 
+              closeModal={closeModal} 
+              mode={authMode} 
+              setMode={setAuthMode} 
+            />
+       
+      )}
+    </div>
   );
 }

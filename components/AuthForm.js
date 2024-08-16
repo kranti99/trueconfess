@@ -55,9 +55,9 @@ export default function AuthForm({ closeModal, mode, setMode }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-gray-800 p-6 rounded-lg relative shadow-lg w-full max-w-md">
-        <button
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+  <div className="bg-gray-800 p-6 rounded-lg relative shadow-lg w-full max-w-md">
+  <button
           onClick={closeModal}
           className="absolute top-2 right-2 text-gray-300 hover:text-white"
           aria-label="Close"
@@ -131,7 +131,7 @@ export default function AuthForm({ closeModal, mode, setMode }) {
         {mode === 'login' && (
           <button
             onClick={() => setMode('reset')}
-            className="mt-4 text-blue-400 hover:text-blue-500 underline"
+            className="mt-4 text-blue-400 hover:text-blue-500"
             aria-label="Forgot password"
           >
             Forgot password?
@@ -139,7 +139,7 @@ export default function AuthForm({ closeModal, mode, setMode }) {
         )}
 
         <button
-          className="mt-4 text-blue-400 hover:text-blue-500 underline"
+          className="mt-4 text-blue-400 hover:text-blue-500"
           onClick={() => setMode(mode === 'signup' ? 'login' : mode === 'login' ? 'signup' : 'login')}
           aria-label={mode === 'signup' ? 'Switch to Login' : 'Switch to Sign Up'}
         >
