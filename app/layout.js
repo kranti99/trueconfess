@@ -9,8 +9,31 @@ import Head from 'next/head'
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Confession Site",
-  description: "A platform to share and read confessions",
+  title: "True Confess | Confession Site",
+  description: "A platform to share and read confessions. Share your anonymous confessions and read other's secrets on True Confess.",
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://www.trueconfess.com/',
+    site_name: 'True Confess',
+    // images: [
+    //   {
+    //     url: 'https://www.trueconfess.com/images/og-image.jpg',
+    //     width: 1200,
+    //     height: 630,
+    //     alt: 'True Confess',
+    //   }
+    // ],
+  },
+  keywords: ['confessions', 'anonymous confessions', 'secrets', 'share confessions', 'True Confess'],
+  robots: {
+    index: true,
+    follow: true,
+    nocache: true,
+  },
+  viewport: 'width=device-width, initial-scale=1.0',
+
+
 };
 
 export default function RootLayout({ children }) {
