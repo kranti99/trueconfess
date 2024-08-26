@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>https://trueconfess.com/profile</loc><lastmod>2024-08-13T07:28:55.458Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/explore</loc><lastmod>2024-08-13T07:28:55.462Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/login</loc><lastmod>2024-08-13T07:28:55.462Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/signup</loc><lastmod>2024-08-13T07:28:55.462Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/upload</loc><lastmod>2024-08-13T07:28:55.462Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com</loc><lastmod>2024-08-13T07:28:55.462Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/category</loc><lastmod>2024-08-13T07:28:55.462Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/tags/asdasdasdasd</loc><lastmod>2024-08-13T07:28:55.462Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/tags/aster</loc><lastmod>2024-08-13T07:28:55.462Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/tags/coke</loc><lastmod>2024-08-13T07:28:55.462Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/tags/duplicate</loc><lastmod>2024-08-13T07:28:55.463Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/tags/hello</loc><lastmod>2024-08-13T07:28:55.463Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/tags/main</loc><lastmod>2024-08-13T07:28:55.463Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/tags/ring</loc><lastmod>2024-08-13T07:28:55.463Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/tags/sakun</loc><lastmod>2024-08-13T07:28:55.463Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/tags/urge</loc><lastmod>2024-08-13T07:28:55.463Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://trueconfess.com/tags/urgent</loc><lastmod>2024-08-13T07:28:55.463Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/login</loc><lastmod>2024-08-26T15:13:05.604Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/signup</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/upload</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/explore</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/category</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/profile</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/tags/Forgiveness</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/tags/Friendship</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/tags/Loneliness</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/tags/Responsibility</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/tags/SelfDoubt</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/tags/guilt</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://trueconfess.com/tags/ring</loc><lastmod>2024-08-26T15:13:05.605Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 </urlset>

@@ -12,40 +12,6 @@ import { FaThumbsUp, FaComment, FaMapMarkerAlt, FaVenusMars, FaCalendarAlt, FaTa
 import TimeAgo from '@components/TimeAgo';
 import parse from 'html-react-parser';
 import { getAuth } from 'firebase/auth';
-
-// Dynamic Metadata Generation
-export async function generateMetadata({ params, searchParams }, parent) {
-  // read route params
-  const id = params.id;
- 
-  // fetch confession data
-  const docRef = doc(db, 'confessions', id);
-  const docSnap = await getDoc(docRef);
-
-  if (!docSnap.exists()) {
-    return {
-      title: 'Confession Not Found | True Confess',
-      description: 'This confession does not exist on True Confess.',
-    };
-  }
-
-  const confession = docSnap.data();
-
-  // Optionally extend parent metadata
-  const previousImages = (await parent).openGraph?.images || [];
-
-  return {
-    title: `${confession.title} | True Confess`,
-    description: confession.content.slice(0, 160), // Use the first 160 characters of the confession as the description
-    openGraph: {
-      type: 'article',
-      locale: 'en_US',
-      url: `https://www.trueconfess.com/confession/${id}`,
-      site_name: 'True Confess',
-      images: confession.image ? [confession.image, ...previousImages] : previousImages,
-    },
-  };
-}
  
 export default function ConfessionDetail({ params, searchParams }) {
   const pathname = usePathname();
