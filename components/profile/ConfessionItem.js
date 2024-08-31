@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { doc, updateDoc, getDoc, getDocs, collection } from 'firebase/firestore'; // Add getDocs and collection imports
+import { doc, updateDoc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { db } from '/firebase';
 import ConfessionDetails from './ConfessionDetails';
 import EditConfessionForm from './EditConfessionForm';
 import ConfessionActions from './ConfessionActions';
 import ConfessionContent from './ConfessionContent';
 
-export default function ConfessionItem({ confession, onDelete, username }) {
+export default function ConfessionItem({ confession, onDelete, avatar, nickname }) {
   const [editingConfessionId, setEditingConfessionId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [editingContent, setEditingContent] = useState('');
@@ -15,7 +15,7 @@ export default function ConfessionItem({ confession, onDelete, username }) {
   const [editingGender, setEditingGender] = useState('');
   const [editingTags, setEditingTags] = useState([]);
   const [editingCategories, setEditingCategories] = useState([]);
-  const [editingDisplayName, setEditingDisplayName] = useState('');
+  const [editingNickname, setEditingNickname] = useState('');
   const [tags, setTags] = useState([]);
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState('');
@@ -50,7 +50,7 @@ export default function ConfessionItem({ confession, onDelete, username }) {
     setEditingGender(confession.gender);
     setEditingTags(confession.tags);
     setEditingCategories(confession.categories);
-    setEditingDisplayName(confession.displayName || 'Anonymous');
+    setEditingNickname(nickname || 'Anonymous');
   };
 
   const handleSaveEdit = async () => {
@@ -69,7 +69,7 @@ export default function ConfessionItem({ confession, onDelete, username }) {
         gender: editingGender,
         tags: editingTags,
         categories: editingCategories,
-        displayName: editingDisplayName,
+        nickname: editingNickname,
       });
 
       setShowSuccessMessage(true);
@@ -83,7 +83,6 @@ export default function ConfessionItem({ confession, onDelete, username }) {
 
   return (
     <div className="confession-item bg-gray-800 p-4 rounded-lg mb-4">
-      
       {editingConfessionId === confession.id ? (
         <EditConfessionForm
           editingConfessionId={editingConfessionId}
@@ -94,7 +93,7 @@ export default function ConfessionItem({ confession, onDelete, username }) {
           editingGender={editingGender}
           editingTags={editingTags}
           editingCategories={editingCategories}
-          editingDisplayName={editingDisplayName}
+          editingNickname={editingNickname}
           tags={tags}
           categories={categories}
           error={error}
@@ -106,15 +105,13 @@ export default function ConfessionItem({ confession, onDelete, username }) {
           setEditingGender={setEditingGender}
           setEditingTags={setEditingTags}
           setEditingCategories={setEditingCategories}
-          setEditingDisplayName={setEditingDisplayName}
+          setEditingNickname={setEditingNickname}
           handleSaveEdit={handleSaveEdit}
           setEditingConfessionId={setEditingConfessionId}
-          username={username}
-          
         />
       ) : (
         <>
-          <ConfessionDetails confession={confession} />
+          <ConfessionDetails confession={confession} avatar={avatar} nickname={nickname} />
           <ConfessionContent content={confession.content} />
           <ConfessionActions
             confession={confession}

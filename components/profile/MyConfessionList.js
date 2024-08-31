@@ -7,9 +7,8 @@ import dynamic from 'next/dynamic';
 import ConfessionItem from './ConfessionItem';
 
 const TimeAgo = dynamic(() => import('@components/TimeAgo'), { ssr: false });
-import { displayName } from 'react-quill';
 
-export default function MyConfessionList({ user }) {
+export default function MyConfessionList({ user, avatar, nickname }) {
   const [confessions, setConfessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
@@ -61,7 +60,8 @@ export default function MyConfessionList({ user }) {
               key={confession.id}
               confession={confession}
               onDelete={handleDelete}
-              username= {user.displayName}
+              avatar={avatar}
+              nickname={nickname}
             />
           ))}
           {confessions.length > (currentPage + 1) * confessionsPerPage && (

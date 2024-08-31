@@ -7,16 +7,53 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
+import { setDoc, doc } from 'firebase/firestore';
+import { db } from '/firebase';
 
 export default function AuthForm({ closeModal, mode, setMode }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
 
   const auth = getAuth();
+  const googleProvider = new GoogleAuthProvider();
+
+  // Predefined avatars list
+  const avatars = [
+    '/avatars/male1.png',
+    '/avatars/male2.png',
+    '/avatars/female1.png',
+    '/avatars/female2.png',
+    // Add more avatar URLs here
+  ];
+
+  // Function to generate a random nickname
+  const generateRandomNickname = () => {
+    const adjectives = ["Cool", "Swift", "Mighty", "Brave", "Quick"];
+    const animals = ["Lion", "Eagle", "Shark", "Panther", "Tiger"];
+    return `${adjectives[Math.floor(Math.random() * adjectives.length)]}${animals[Math.floor(Math.random() * animals.length)]}`;
+  };
+
+  // Function to select a random avatar
+  const getRandomAvatar = () => {
+    return avatars[Math.floor(Math.random() * avatars.length)];
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      setMessage('Login via Google successful! Redirecting...');
+      setTimeout(() => closeModal(), 1500); // Close modal after showing success message
+    } catch (error) {
+      setIsError(true);
+      setMessage(error.message);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +63,20 @@ export default function AuthForm({ closeModal, mode, setMode }) {
     try {
       if (mode === 'signup') {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, { displayName: username });
+        const randomNickname = generateRandomNickname();
+        const randomAvatar = getRandomAvatar();
+
+        // Update profile with random nickname and avatar
+        await updateProfile(userCredential.user, { displayName: randomNickname, photoURL: randomAvatar });
+
+        // Save user data to Firestore
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          uid: userCredential.user.uid,
+          nickname: randomNickname,
+          avatar: randomAvatar,
+          email: userCredential.user.email,
+        });
+
         setMessage('Sign up successful! Redirecting...');
       } else {
         await signInWithEmailAndPassword(auth, email, password);
@@ -56,8 +106,8 @@ export default function AuthForm({ closeModal, mode, setMode }) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
-  <div className="bg-gray-800 p-6 rounded-lg relative shadow-lg w-full max-w-md">
-  <button
+      <div className="bg-gray-800 p-6 rounded-lg relative shadow-lg w-full max-w-md">
+        <button
           onClick={closeModal}
           className="absolute top-2 right-2 text-gray-300 hover:text-white"
           aria-label="Close"
@@ -68,34 +118,30 @@ export default function AuthForm({ closeModal, mode, setMode }) {
           {mode === 'signup' ? 'Sign Up' : mode === 'login' ? 'Login' : 'Reset Password'}
         </h1>
 
-        {mode === 'reset' ? (
-          <form onSubmit={handlePasswordReset} className="space-y-4">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              required
-              className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white placeholder-gray-400"
-              aria-label="Email for password reset"
-            />
+        {!showEmailForm ? (
+          <>
             <button
-              type="submit"
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-              aria-label="Reset Password"
+              onClick={handleGoogleLogin}
+              className="w-full px-4 py-2 mb-4 bg-red-600 text-white rounded hover:bg-red-700 transition"
+              aria-label="Login with Google"
             >
-              Reset Password
+              Login via Google
             </button>
-          </form>
+            <button
+              onClick={() => setShowEmailForm(true)}
+              className="w-full px-4 py-2 mb-4 bg-gray-600 text-white rounded hover:bg-gray-700 transition"
+              aria-label="Continue with Email"
+            >
+              Continue with Email
+            </button>
+          </>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'signup' && (
               <input
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-                required
+                value={generateRandomNickname()} // Generate and show random nickname (user won't see it)
+                disabled
                 className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white placeholder-gray-400"
                 aria-label="Username"
               />
@@ -120,7 +166,8 @@ export default function AuthForm({ closeModal, mode, setMode }) {
             />
             <button
               type="submit"
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              className="w-full px-4 py-2 bg-blue-
+              600 text-white rounded hover:bg-blue-700 transition"
               aria-label={mode === 'signup' ? 'Sign Up' : 'Login'}
             >
               {mode === 'signup' ? 'Sign Up' : 'Login'}
@@ -128,7 +175,7 @@ export default function AuthForm({ closeModal, mode, setMode }) {
           </form>
         )}
 
-        {mode === 'login' && (
+        {mode === 'login' && showEmailForm && (
           <button
             onClick={() => setMode('reset')}
             className="mt-4 text-blue-400 hover:text-blue-500"
@@ -138,17 +185,19 @@ export default function AuthForm({ closeModal, mode, setMode }) {
           </button>
         )}
 
-        <button
-          className="mt-4 text-blue-400 hover:text-blue-500"
-          onClick={() => setMode(mode === 'signup' ? 'login' : mode === 'login' ? 'signup' : 'login')}
-          aria-label={mode === 'signup' ? 'Switch to Login' : 'Switch to Sign Up'}
-        >
-          {mode === 'signup'
-            ? 'Already a member? Login here'
-            : mode === 'login'
-            ? "Don't have an account? Sign up here"
-            : 'Back to Login'}
-        </button>
+        {showEmailForm && (
+          <button
+            className="mt-4 text-blue-400 hover:text-blue-500"
+            onClick={() => setMode(mode === 'signup' ? 'login' : mode === 'login' ? 'signup' : 'login')}
+            aria-label={mode === 'signup' ? 'Switch to Login' : 'Switch to Sign Up'}
+          >
+            {mode === 'signup'
+              ? 'Already a member? Login here'
+              : mode === 'login'
+              ? "Don't have an account? Sign up here"
+              : 'Back to Login'}
+          </button>
+        )}
 
         {message && (
           <p className={`mt-4 ${isError ? 'text-red-500' : 'text-green-500'}`}>

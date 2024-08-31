@@ -4,7 +4,8 @@ import Header from "../components/header/page";
 import Footer from "../components/footer/page";
 import LeftSidebar from '../components/LeftSidebar';
 import "./globals.css";
-import Head from 'next/head'
+import Head from 'next/head';
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,30 +33,30 @@ export const metadata = {
     nocache: true,
   },
   viewport: 'width=device-width, initial-scale=1.0',
-
-
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-       <head>
+      <Head>
         <meta name="google-site-verification" content="YqBu1NmdPSIaYbA9gvZKILnfCH2CMUWMMcfgXJoPRu4" />
-        {/* <!-- Google tag (gtag.js) --> */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-6LC27C3J8W"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-
-          gtag('config', 'G-6LC27C3J8W');
-        </script>
-      </head>
+      </Head>
       <body className={inter.className}>
+      {/* <Script async src="https://www.googletagmanager.com/gtag/js?id=G-6LC27C3J8W" />
+        <Script>
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-6LC27C3J8W');
+          `}
+        </Script> */}
         <Header />
+        
         <div className='relative flex justify-center'>
-        <LeftSidebar />
-        <main className="container max-w-3xl mx-4 px-0 py-12 md:px-4">{children}</main>
+          <LeftSidebar />
+          <main className="container max-w-3xl mx-4 px-0 py-12 md:px-4">{children}</main>
         </div>
         <div id="modal-root"></div>
         <Footer />

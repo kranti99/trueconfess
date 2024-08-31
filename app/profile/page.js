@@ -2,39 +2,62 @@
 
 import React, { useState, useEffect } from 'react';
 import { getAuth, updateProfile } from 'firebase/auth';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, setDoc } from 'firebase/firestore';
+import { FaPencilAlt } from 'react-icons/fa';
 import { db } from '/firebase';
 import dynamic from 'next/dynamic';
 
 const Avatar = dynamic(() => import('react-avatar'), { ssr: false });
-const ClipLoader = dynamic(() => import('react-spinners/ClipLoader'), { ssr: false });
+const AvatarEditModal = dynamic(() => import('@components/profile/AvatarEditModal'), { ssr: false });
 const MyConfessionList = dynamic(() => import('@components/profile/MyConfessionList'), { ssr: false });
 
-export default function Profile() {
-  const [auth, setAuth] = useState(null);
+export default function ProfileSection() {
   const [user, setUser] = useState(null);
   const [avatar, setAvatar] = useState('');
+  const [nickname, setNickname] = useState('');
   const [loading, setLoading] = useState(true);
-  const storage = getStorage();
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [newNickname, setNewNickname] = useState('');
+
+  const avatars = [
+    '/avatars/male1.png',
+    '/avatars/male2.png',
+    '/avatars/female1.png',
+    '/avatars/female2.png',
+    // Add more avatar URLs here
+  ];
 
   useEffect(() => {
     const authInstance = getAuth();
-    authInstance.onAuthStateChanged((currentUser) => {
+    authInstance.onAuthStateChanged(async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        setAvatar(currentUser.photoURL || '');
+        const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', currentUser.uid)));
+        if (!userDoc.empty) {
+          const userData = userDoc.docs[0].data();
+          setAvatar(userData.avatar || avatars[0]);
+          setNickname(userData.nickname || 'Anonymous');
+        } else {
+          await setDoc(doc(db, 'users', currentUser.uid), { uid: currentUser.uid, avatar: avatars[0], nickname: 'Anonymous' });
+          setAvatar(avatars[0]);
+          setNickname('Anonymous');
+        }
       }
       setLoading(false);
     });
-    setAuth(authInstance);
   }, []);
 
   const handleAvatarChange = async (avatarURL) => {
     setLoading(true);
     try {
+      if (!user) return;
+
       await updateProfile(user, { photoURL: avatarURL });
       setAvatar(avatarURL);
+
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, { avatar: avatarURL });
 
       const userConfessionsRef = collection(db, 'confessions');
       const q = query(userConfessionsRef, where('userId', '==', user.uid));
@@ -47,33 +70,30 @@ export default function Profile() {
       console.error('Error updating avatar:', error);
     } finally {
       setLoading(false);
+      setEditModalOpen(false);
     }
   };
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleNicknameChange = async () => {
+    if (!newNickname.trim()) return;
 
     setLoading(true);
     try {
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      if (!user) return;
 
-      const storageRef = ref(storage, `avatars/${user.uid}`);
-      await uploadBytes(storageRef, file);
-      const avatarURL = await getDownloadURL(storageRef);
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, { nickname: newNickname });
 
-      await handleAvatarChange(avatarURL);
+      setNickname(newNickname);
+      setIsEditingNickname(false);
     } catch (error) {
-      console.error('Error uploading avatar:', error);
+      console.error('Error updating nickname:', error);
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) return <p>Loading...</p>;
-
   if (!user) return <p>Please log in to view your profile.</p>;
 
   return (
@@ -82,34 +102,40 @@ export default function Profile() {
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
           <div className="relative">
-            <Avatar src={avatar || '/default-avatar.png'} size="100" round={true} className="object-cover"/>
-            {loading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 rounded-full">
-                <ClipLoader color="#000" size={50} />
-              </div>
-            )}
+            <Avatar src={avatar} size="100" round={true} className="object-cover" />
+            <button 
+              onClick={() => setEditModalOpen(true)} 
+              className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600"
+            >
+              <FaPencilAlt />
+            </button>
           </div>
           <div>
-            <input 
-              type="file" 
-              onChange={handleFileUpload} 
-              className="hidden" 
-              id="avatarUpload" 
-            />
-            <label 
-              htmlFor="avatarUpload" 
-              className="px-4 py-2 bg-blue-500 text-white rounded cursor-pointer hover:bg-blue-600"
-            >
-              Change Avatar
-            </label>
+            <p className="text-xl"><strong>Email:</strong> {user.email}</p>
+            <p className="text-xl"><strong>Nickname:</strong> {isEditingNickname ? (
+              <input
+                type="text"
+                value={newNickname}
+                onChange={(e) => setNewNickname(e.target.value)}
+                onBlur={handleNicknameChange}
+                className="border p-2 rounded"
+                autoFocus
+              />
+            ) : (
+              <span onClick={() => setIsEditingNickname(true)} className="cursor-pointer">
+                {nickname}
+              </span>
+            )}</p>
           </div>
         </div>
-        <div>
-          <p className="text-xl"><strong>Email:</strong> {user.email}</p>
-          <p className="text-xl"><strong>Username:</strong> {user.displayName}</p>
-        </div>
       </div>
-      <MyConfessionList user={user} avatar={avatar} />
+      <AvatarEditModal 
+        avatars={avatars} 
+        isOpen={isEditModalOpen} 
+        onClose={() => setEditModalOpen(false)} 
+        onSelect={handleAvatarChange} 
+      />
+      <MyConfessionList user={user} avatar={avatar} nickname={nickname} />
     </div>
   );
 }
