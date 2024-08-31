@@ -10,7 +10,6 @@
     "postbuild": "next-sitemap"
   },
   "dependencies": {
-    "avataaars": "^2.0.0",
     "draft-js": "^0.11.7",
     "emoji-picker-react": "^4.11.1",
     "firebase": "^10.12.3",

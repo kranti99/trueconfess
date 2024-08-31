@@ -6,6 +6,7 @@ import { collection, query, where, getDocs, doc, updateDoc, setDoc } from 'fireb
 import { FaPencilAlt } from 'react-icons/fa';
 import { db } from '/firebase';
 import dynamic from 'next/dynamic';
+import { avatars } from '@components/profile/Avatars'; // Import avatars from the new file
 
 const Avatar = dynamic(() => import('react-avatar'), { ssr: false });
 const AvatarEditModal = dynamic(() => import('@components/profile/AvatarEditModal'), { ssr: false });
@@ -19,14 +20,6 @@ export default function ProfileSection() {
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [newNickname, setNewNickname] = useState('');
-
-  const avatars = [
-    '/avatars/male1.png',
-    '/avatars/male2.png',
-    '/avatars/female1.png',
-    '/avatars/female2.png',
-    // Add more avatar URLs here
-  ];
 
   useEffect(() => {
     const authInstance = getAuth();
