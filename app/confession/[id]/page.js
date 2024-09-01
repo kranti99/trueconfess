@@ -12,14 +12,15 @@ import { FaThumbsUp, FaComment, FaMapMarkerAlt, FaVenusMars, FaCalendarAlt, FaTa
 import TimeAgo from '@components/TimeAgo';
 import parse from 'html-react-parser';
 import { getAuth } from 'firebase/auth';
- 
-export default function ConfessionDetail({ params, searchParams }) {
+
+export default function ConfessionDetail({ params }) {
   const pathname = usePathname();
   const router = useRouter();
   const [confession, setConfession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userLikes, setUserLikes] = useState({});
+  const [userData, setUserData] = useState(null);
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -34,11 +35,23 @@ export default function ConfessionDetail({ params, searchParams }) {
 
     const fetchConfession = async () => {
       try {
-        const docRef = doc(db, 'confessions', id);
-        const docSnap = await getDoc(docRef);
+        const confessionDocRef = doc(db, 'confessions', id);
+        const confessionSnap = await getDoc(confessionDocRef);
 
-        if (docSnap.exists()) {
-          setConfession({ id: docSnap.id, ...docSnap.data() });
+        if (confessionSnap.exists()) {
+          const confessionData = confessionSnap.data();
+
+          const userDocRef = doc(db, 'users', confessionData.userId);
+          const userSnap = await getDoc(userDocRef);
+
+          const mergedData = {
+            id: confessionSnap.id,
+            ...confessionData,
+            avatar: userSnap.exists() ? userSnap.data().avatar : '/default-avatar.png',
+            nickname: userSnap.exists() ? userSnap.data().nickname : 'Anonymous',
+          };
+
+          setConfession(mergedData);
         } else {
           setError('Confession not found');
         }
@@ -119,12 +132,12 @@ export default function ConfessionDetail({ params, searchParams }) {
         <>
           <div className="p-8 bg-dark-background-light rounded-lg shadow-lg">
             <div className="flex items-start space-x-4 mb-4">
-              {!confession.anonymous && (
-                <Avatar 
-                  name={confession.nickname} 
-                  src={confession.avatar || '/default-avatar.png'} 
-                  size="50" 
-                  round={true} 
+              {confession.avatar && (
+                <Avatar
+                  name={confession.nickname}
+                  src={confession.avatar}
+                  size="50"
+                  round={true}
                 />
               )}
               <div>

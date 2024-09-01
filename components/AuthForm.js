@@ -10,7 +10,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
-import { setDoc, doc } from 'firebase/firestore';
+import { setDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '/firebase';
 
 export default function AuthForm({ closeModal, mode, setMode }) {
@@ -29,14 +29,23 @@ export default function AuthForm({ closeModal, mode, setMode }) {
     '/avatars/male2.png',
     '/avatars/female1.png',
     '/avatars/female2.png',
-    // Add more avatar URLs here
   ];
 
   // Function to generate a random nickname
-  const generateRandomNickname = () => {
-    const adjectives = ["Cool", "Swift", "Mighty", "Brave", "Quick"];
-    const animals = ["Lion", "Eagle", "Shark", "Panther", "Tiger"];
-    return `${adjectives[Math.floor(Math.random() * adjectives.length)]}${animals[Math.floor(Math.random() * animals.length)]}`;
+  const generateRandomNickname  = async () => {
+    let nickname;
+    let docSnap;
+  
+    do {
+      const adjectives = ["Cool", "Swift", "Mighty", "Brave", "Quick"];
+      const animals = ["Lion", "Eagle", "Shark", "Panther", "Tiger"];
+      nickname = `${adjectives[Math.floor(Math.random() * adjectives.length)]}${animals[Math.floor(Math.random() * animals.length)]}`;
+  
+      const docRef = doc(db, 'users', nickname);
+      docSnap = await getDoc(docRef);
+    } while (docSnap.exists());
+  
+    return nickname;
   };
 
   // Function to select a random avatar
@@ -59,16 +68,16 @@ export default function AuthForm({ closeModal, mode, setMode }) {
     e.preventDefault();
     setMessage('');
     setIsError(false);
-
+  
     try {
       if (mode === 'signup') {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const randomNickname = generateRandomNickname();
+        const randomNickname = await generateRandomNickname(); // Ensure to await the nickname generation
         const randomAvatar = getRandomAvatar();
-
+  
         // Update profile with random nickname and avatar
         await updateProfile(userCredential.user, { displayName: randomNickname, photoURL: randomAvatar });
-
+  
         // Save user data to Firestore
         await setDoc(doc(db, 'users', userCredential.user.uid), {
           uid: userCredential.user.uid,
@@ -76,7 +85,7 @@ export default function AuthForm({ closeModal, mode, setMode }) {
           avatar: randomAvatar,
           email: userCredential.user.email,
         });
-
+  
         setMessage('Sign up successful! Redirecting...');
       } else {
         await signInWithEmailAndPassword(auth, email, password);
@@ -88,6 +97,7 @@ export default function AuthForm({ closeModal, mode, setMode }) {
       setMessage(error.message);
     }
   };
+  
 
   const handlePasswordReset = async (e) => {
     e.preventDefault();
@@ -166,8 +176,7 @@ export default function AuthForm({ closeModal, mode, setMode }) {
             />
             <button
               type="submit"
-              className="w-full px-4 py-2 bg-blue-
-              600 text-white rounded hover:bg-blue-700 transition"
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
               aria-label={mode === 'signup' ? 'Sign Up' : 'Login'}
             >
               {mode === 'signup' ? 'Sign Up' : 'Login'}

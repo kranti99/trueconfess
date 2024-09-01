@@ -57,14 +57,15 @@ const LeftSidebar = () => {
           <span className="text-xs md:text-sm">Categories</span>
         </Link>
         {user ? (
-          <div className="relative flex flex-col items-center space-y-1">
+          <div className="md:relative flex flex-col items-center space-y-1">
             <FaUserCircle
               size={20}
               className="cursor-pointer hover:text-gray-400"
               onClick={() => setShowDropdown(!showDropdown)}
             />
             {showDropdown && (
-              <div className="absolute left-0 md:left-24 transform md:-translate-x-1/2 top-10 mt-2 w-48 bg-white text-black rounded shadow-lg z-50">
+              <div className="fixed bottom-[80px] right-[15px] md:absolute md:right-auto md:left-24 md:-translate-x-1/2 mt-2 w-48 bg-white text-black rounded shadow-lg z-50" style={{ height:'fit-content' }}
+>
                 <Link
                   href="/profile"
                   className="block px-4 py-2 hover:bg-gray-200 text-black"

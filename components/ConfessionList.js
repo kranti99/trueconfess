@@ -5,7 +5,7 @@ import Link from "next/link";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "/firebase";
 import dynamic from "next/dynamic";
-import { FaThumbsUp, FaComment, FaMapMarkerAlt, FaVenusMars, FaCalendarAlt } from "react-icons/fa";
+import { FaFolder,FaThumbsUp, FaComment, FaMapMarkerAlt, FaVenusMars, FaCalendarAlt } from "react-icons/fa";
 import parse from "html-react-parser";
 import LoadingSpinner from "@components/LoadingSpinner";
 
@@ -21,12 +21,28 @@ const ConfessionList = () => {
     if (typeof window !== "undefined") {
       const fetchConfessions = async () => {
         try {
-          const querySnapshot = await getDocs(collection(db, "confessions"));
-          const confessionsData = querySnapshot.docs.map((doc) => ({
+          const confessionSnapshot = await getDocs(collection(db, "confessions"));
+          const confessionData = confessionSnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
           }));
-          setConfessions(confessionsData);
+
+          const userSnapshot = await getDocs(collection(db, "users"));
+          const userData = userSnapshot.docs.reduce((acc, doc) => {
+            acc[doc.id] = doc.data();
+            return acc;
+          }, {});
+
+          const mergedData = confessionData.map((confession) => {
+            const user = userData[confession.userId] || {};
+            return {
+              ...confession,
+              avatar: user.avatar,
+              nickname: user.nickname || 'Anonymous',
+            };
+          });
+
+          setConfessions(mergedData);
         } catch (error) {
           console.error("Error fetching confessions: ", error);
         } finally {
@@ -80,46 +96,54 @@ const ConfessionList = () => {
           <Link href={`/confession/${confession.id}`}>
             <div className="p-6 border bg-dark-background-light border-gray-700 rounded-lg shadow-md hover:bg-zinc-900 transition duration-300 cursor-pointer">
               <div className="flex items-center mb-4">
-                <Avatar src={confession.avatar || '/default-avatar.png'} size="50" round />
+                {confession.avatar && (
+                  <Avatar src={confession.avatar || '/default-avatar.png'} size="60" round />
+                )}
                 <div className="ml-4">
-                  <h2 className="text-lg font-semibold mb-0">{confession.nickname}</h2>
+                  <h2 className="text-lg font-semibold mb-0">{confession.nickname || 'Anonymous'}</h2>
                   <TimeAgo timestamp={confession.date} />
                 </div>
               </div>
-    <div className="flex items-center text-gray-400 mb-2">
-                  {confession.location && (
-                    <div className="flex items-center">
-                      <FaMapMarkerAlt className="mr-2 text-red-500" />
-                      {confession.location}
-                    </div>
-                  )}
-                  {confession.gender && (
-                    <div className="flex items-center ml-4">
-                      <FaVenusMars className="mr-2 text-purple-500" />
-                      {confession.gender}
-                    </div>
-                  )}
-                  {confession.age && (
-                    <div className="flex items-center ml-4">
-                      <FaCalendarAlt className="mr-2 text-yellow-500" />
-                      {confession.age} years old
-                    </div>
-                  )}
-                </div>
 
-              <div className="flex flex-wrap gap-2 mb-6">
-                {confession.category && confession.category.length > 0 && (
+              <div className="flex items-center text-gray-400 mb-2">
+                {confession.location && (
                   <div className="flex items-center">
-                    <span className="text-gray-400 text-xs font-semibold">Category:</span>
-                    {confession.category.map((cat, index) => (
-                      <Link key={index} href={`/category/${encodeURIComponent(cat)}`}>
-                        <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-md hover:bg-gray-600 transition duration-300 ml-2">
-                          {cat}
-                        </span>
-                      </Link>
-                    ))}
+                    <FaMapMarkerAlt className="mr-2 text-red-500" />
+                    {confession.location}
                   </div>
                 )}
+                {confession.gender && (
+                  <div className="flex items-center ml-4">
+                    <FaVenusMars className="mr-2 text-purple-500" />
+                    {confession.gender}
+                  </div>
+                )}
+                {confession.age && (
+                  <div className="flex items-center ml-4">
+                    <FaCalendarAlt className="mr-2 text-yellow-500" />
+                    {confession.age} years old
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-6">
+              {confession.categories?.length > 0 && (
+                <div className="flex items-center">
+                  <FaFolder className="mr-2 text-blue-500" />
+                  <strong>Categories:</strong>
+                  <div className="flex space-x-2 ml-2">
+                    {confession.categories.map((cat) => (
+                      <a
+                        key={cat}
+                        href={`/category/${cat}`}
+                        className="text-blue-500 hover:underline"
+                      >
+                        {cat}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
                 {confession.tags && confession.tags.length > 0 && (
                   <div className="flex items-center">
                     <span className="text-gray-400 text-xs font-semibold">Tags:</span>
