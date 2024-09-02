@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { FaFolder,FaThumbsUp, FaComment, FaMapMarkerAlt, FaVenusMars, FaCalendarAlt } from "react-icons/fa";
 import parse from "html-react-parser";
 import LoadingSpinner from "@components/LoadingSpinner";
+import Image from 'next/image';
 
 const Avatar = dynamic(() => import("react-avatar"), { ssr: false });
 const TimeAgo = dynamic(() => import("./TimeAgo"), { ssr: false });
@@ -96,9 +97,16 @@ const ConfessionList = () => {
           <Link href={`/confession/${confession.id}`}>
             <div className="p-6 border bg-dark-background-light border-gray-700 rounded-lg shadow-md hover:bg-zinc-900 transition duration-300 cursor-pointer">
               <div className="flex items-center mb-4">
-                {confession.avatar && (
-                  <Avatar src={confession.avatar || '/default-avatar.png'} size="60" round />
-                )}
+                <div className="relative w-16 h-16">
+                  <Image
+                    src={confession.avatar || '/default-avatar.png'}
+                    alt={confession.nickname || 'Anonymous'}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-full"
+                  />
+                </div>
+
                 <div className="ml-4">
                   <h2 className="text-lg font-semibold mb-0">{confession.nickname || 'Anonymous'}</h2>
                   <TimeAgo timestamp={confession.date} />
