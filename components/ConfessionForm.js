@@ -9,389 +9,389 @@ import "react-quill/dist/quill.snow.css";
 import "quill-emoji/dist/quill-emoji.css";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
-import Switch from "react-switch"; // import a switch component
+import Switch from "react-switch";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 const darkModeSelectStyles = {
-  control: (base) => ({
-    ...base,
-    backgroundColor: "#333",
-    borderColor: "#555",
-    color: "#fff",
-  }),
-  option: (base, { isFocused, isSelected }) => ({
-    ...base,
-    backgroundColor: isSelected ? "#555" : isFocused ? "#444" : "#333",
-    color: "#fff",
-  }),
-  singleValue: (base) => ({
-    ...base,
-    color: "#fff",
-  }),
+    control: (base) => ({ ...base, backgroundColor: "#333", borderColor: "#555", color: "#fff", }),
+    option: (base, { isFocused, isSelected }) => ({ ...base, backgroundColor: isSelected ? "#555" : isFocused ? "#444" : "#333", color: "#fff", }),
+    singleValue: (base) => ({ ...base, color: "#fff", }),
 };
 
 const ConfessionForm = () => {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [tags, setTags] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
-  const [location, setLocation] = useState("");
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [isPosting, setIsPosting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [authUser, setAuthUser] = useState(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showAge, setShowAge] = useState(true);
-  const [showLocation, setShowLocation] = useState(true);
-  const [showGender, setShowGender] = useState(true);
+    const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
+    const [isAnonymous, setIsAnonymous] = useState(false);
+    const [categories, setCategories] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [tags, setTags] = useState([]);
+    const [selectedTags, setSelectedTags] = useState([]);
+    const [location, setLocation] = useState("");
+    const [age, setAge] = useState("");
+    const [gender, setGender] = useState("");
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [isPosting, setIsPosting] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [authUser, setAuthUser] = useState(null);
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [showAge, setShowAge] = useState(true);
+    const [showLocation, setShowLocation] = useState(true);
+    const [showGender, setShowGender] = useState(true);
 
-  const auth = getAuth();
+    const auth = getAuth();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setAuthUser(user);
-    });
-    return () => unsubscribe();
-  }, [auth]);
-  useEffect(() => {
-    let Quill;
-    let EmojiBlot;
-    let ShortNameEmoji;
-    let ToolbarEmoji;
-
-    if (typeof window !== 'undefined') {
-      Quill = require('react-quill').Quill;
-      EmojiBlot = require('quill-emoji').EmojiBlot;
-      ShortNameEmoji = require('quill-emoji').ShortNameEmoji;
-      ToolbarEmoji = require('quill-emoji').ToolbarEmoji;
-
-      if (Quill) {
-        Quill.register("modules/emoji", {
-          EmojiBlot,
-          ShortNameEmoji,
-          ToolbarEmoji,
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setAuthUser(user);
         });
-      }
-    }
-  }, []);
-  useEffect(() => {
-    const fetchCategoriesAndTags = async () => {
-      try {
-        const categoriesSnapshot = await getDocs(collection(db, "categories"));
-        const tagsSnapshot = await getDocs(collection(db, "tags"));
-        const fetchedCategories = categoriesSnapshot.docs.map((doc) => ({
-          value: doc.id,
-          label: doc.data().name,
-        }));
-        const fetchedTags = tagsSnapshot.docs.map((doc) => ({
-          value: doc.id,
-          label: doc.data().name,
-        }));
-        setCategories(fetchedCategories);
-        setTags(fetchedTags);
-      } catch (error) {
-        console.error("Error fetching categories and tags: ", error);
-      }
-    };
+        return () => unsubscribe();
+    }, [auth]);
 
-    fetchCategoriesAndTags();
-  }, []);
+    useEffect(() => {
+        let Quill, EmojiBlot, ShortNameEmoji, ToolbarEmoji;
+        if (typeof window !== 'undefined') {
+            Quill = require('react-quill').Quill;
+            EmojiBlot = require('quill-emoji').EmojiBlot;
+            ShortNameEmoji = require('quill-emoji').ShortNameEmoji;
+            ToolbarEmoji = require('quill-emoji').ToolbarEmoji;
 
-  const handlePostConfession = async (event) => {
-    event.preventDefault();
-    if (!authUser) {
-      setShowAuthModal(true);
-      return;
-    }
-    try {
-      setIsPosting(true);
-      await addDoc(collection(db, "confessions"), {
-        title: title.trim(),
-        content,
-        categories: selectedCategories.map((cat) => cat.value),
-        tags: selectedTags.map((tag) => tag.value),
-        date: serverTimestamp(),
-        userId: authUser.uid,
-        displayName: isAnonymous ? "Anonymous" : authUser.displayName || "Anonymous",
-        likes: 0,
-        commentCount: 0,
-        location: showLocation ? location.trim() : "",
-        gender: showGender ? gender : "",
-        age: showAge ? parseInt(age, 10) : null,
-      });
-      setTitle("");
-      setContent("");
-      setSelectedCategories([]);
-      setSelectedTags([]);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (error) {
-      console.error("Error adding confession: ", error);
-    } finally {
-      setIsPosting(false);
-    }
-  };
+            if (Quill) {
+                Quill.register("modules/emoji", { EmojiBlot, ShortNameEmoji, ToolbarEmoji });
+            }
+        }
+    }, []);
 
-  const handleSaveDraft = async () => {
-    if (!authUser) {
-      setShowAuthModal(true);
-      return;
-    }
-    try {
-      setIsSaving(true);
-      const draftData = {
-        title: title.trim(),
-        content,
-        categories: selectedCategories.map((cat) => cat.value),
-        tags: selectedTags.map((tag) => tag.value),
-        date: serverTimestamp(),
-        userId: authUser.uid,
-        displayName: isAnonymous ? "Anonymous" : authUser.displayName || "Anonymous",
-        isDraft: true,
-        location: showLocation ? location.trim() : "",
-        gender: showGender ? gender : "",
-        age: showAge ? parseInt(age, 10) : null,
-      };
-      localStorage.setItem("draft", JSON.stringify(draftData));
-      await addDoc(collection(db, "drafts"), draftData);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (error) {
-      console.error("Error saving draft: ", error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+    useEffect(() => {
+        const fetchCategoriesAndTags = async () => {
+            try {
+                const categoriesSnapshot = await getDocs(collection(db, "categories"));
+                const tagsSnapshot = await getDocs(collection(db, "tags"));
 
-  useEffect(() => {
-    const draft = localStorage.getItem("draft");
-    if (draft) {
-      const savedDraft = JSON.parse(draft);
-      setTitle(savedDraft.title);
-      setContent(savedDraft.content);
-      setSelectedCategories(categories.filter((cat) => savedDraft.categories.includes(cat.value)));
-      setSelectedTags(savedDraft.tags.map((tag) => ({ value: tag, label: tag })));
-    }
-  }, [categories]);
+                const fetchedCategories = categoriesSnapshot.docs.map((doc) => ({
+                    value: doc.id,
+                    label: doc.data().name,
+                }));
+                const fetchedTags = tagsSnapshot.docs.map((doc) => ({
+                    value: doc.id,
+                    label: doc.data().name,
+                }));
 
-  useEffect(() => {
-    const beforeUnloadHandler = (event) => {
-      if (title || content) {
+                setCategories(fetchedCategories);
+                setTags(fetchedTags);
+            } catch (error) {
+                console.error("Error fetching categories and tags: ", error);
+            }
+        };
+
+        fetchCategoriesAndTags();
+    }, []);
+
+    const handlePostConfession = async (event) => {
         event.preventDefault();
-        event.returnValue = "";
-      }
+        if (!authUser) {
+            setShowAuthModal(true);
+            return;
+        }
+
+        if (selectedCategories.length > 5 || selectedTags.length > 5) {
+            alert("You can select up to 5 categories and 5 tags only.");
+            return;
+        }
+
+        try {
+            setIsPosting(true);
+            await addDoc(collection(db, "confessions"), {
+                title: title.trim(),
+                content,
+                categories: selectedCategories.map((cat) => cat.value),
+                tags: selectedTags.map((tag) => tag.value),
+                date: serverTimestamp(),
+                userId: authUser.uid,
+                displayName: isAnonymous ? "Anonymous" : authUser.displayName || "Anonymous",
+                likes: 0,
+                commentCount: 0,
+                location: showLocation ? location.trim() : "",
+                gender: showGender ? gender : "",
+                age: showAge ? parseInt(age, 10) : null,
+            });
+
+            setTitle("");
+            setContent("");
+            setSelectedCategories([]);
+            setSelectedTags([]);
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (error) {
+            console.error("Error adding confession: ", error);
+        } finally {
+            setIsPosting(false);
+        }
     };
-    window.addEventListener("beforeunload", beforeUnloadHandler);
-    return () => {
-      window.removeEventListener("beforeunload", beforeUnloadHandler);
+
+    const handleSaveDraft = async () => {
+        if (!authUser) {
+            setShowAuthModal(true);
+            return;
+        }
+
+        if (selectedCategories.length > 5 || selectedTags.length > 5) {
+            alert("You can select up to 5 categories and 5 tags only.");
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+
+            const draftData = {
+                title: title.trim(),
+                content,
+                categories: selectedCategories.map((cat) => cat.value),
+                tags: selectedTags.map((tag) => tag.value),
+                date: serverTimestamp(),
+                userId: authUser.uid,
+                displayName: isAnonymous ? "Anonymous" : authUser.displayName || "Anonymous",
+                isDraft: true,
+                location: showLocation ? location.trim() : "",
+                gender: showGender ? gender : "",
+                age: showAge ? parseInt(age, 10) : null,
+            };
+
+            localStorage.setItem("draft", JSON.stringify(draftData));
+            await addDoc(collection(db, "drafts"), draftData);
+
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } catch (error) {
+            console.error("Error saving draft: ", error);
+        } finally {
+            setIsSaving(false);
+        }
     };
-  }, [title, content]);
 
-  const handleCreateTag = async (inputValue) => {
-    if (!/^[a-zA-Z0-9]+$/.test(inputValue)) {
-      alert("Tags should only contain alphanumeric characters without spaces or special characters.");
-      return;
-    }
-    const newTag = { name: inputValue };
-    const tagRef = doc(db, "tags", inputValue);
-    await setDoc(tagRef, newTag);
-    const newOption = { value: inputValue, label: inputValue };
-    setSelectedTags((prev) => [...prev, newOption]);
-    setTags((prev) => [...prev, newOption]);
-  };
+    useEffect(() => {
+        const draft = localStorage.getItem("draft");
+        if (draft) {
+            const savedDraft = JSON.parse(draft);
+            setTitle(savedDraft.title);
+            setContent(savedDraft.content);
+            setSelectedCategories(categories.filter((cat) => savedDraft.categories.includes(cat.value)));
+            setSelectedTags(savedDraft.tags.map((tag) => ({ value: tag, label: tag })));
+        }
+    }, [categories]);
 
-  const quillModules = {
-    toolbar: [
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["bold", "italic", "underline", "strike", "blockquote"],
-      [{ align: [] }],
-      ["emoji"],
-      ["clean"],
-    ],
-    "emoji-toolbar": true,
-    "emoji-textarea": true,
-    "emoji-shortname": true,
-  };
+    useEffect(() => {
+        const beforeUnloadHandler = (event) => {
+            if (title || content) {
+                event.preventDefault();
+                event.returnValue = "";
+            }
+        };
+        window.addEventListener("beforeunload", beforeUnloadHandler);
+        return () => {
+            window.removeEventListener("beforeunload", beforeUnloadHandler);
+        };
+    }, [title, content]);
 
-  return (
-    <div className="p-6 bg-dark-background-light rounded-lg text-white shadow-md max-w-3xl mx-auto">
-      {showSuccess && (
-        <div className="bg-green-500 text-white p-4 rounded-md mb-6 flex items-center">
-          <FaCheckCircle className="mr-2" /> Confession saved successfully!
+    const handleCreateTag = async (inputValue) => {
+        if (inputValue.length > 20) {
+            alert("Tag name should not exceed 20 characters.");
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9]+$/.test(inputValue)) {
+            alert("Tags should only contain alphanumeric characters without spaces or special characters.");
+            return;
+        }
+
+        const newTag = { name: inputValue };
+        const tagRef = doc(db, "tags", inputValue);
+
+        await setDoc(tagRef, newTag);
+        const newOption = { value: inputValue, label: inputValue };
+
+        setSelectedTags((prev) => [...prev, newOption]);
+        setTags((prev) => [...prev, newOption]);
+    };
+
+    const quillModules = {
+        toolbar: [
+            [{ list: "ordered" }, { list: "bullet" }],
+            ["bold", "italic", "underline", "strike", "blockquote"],
+            [{ align: [] }],
+            ["emoji"],
+            ["clean"],
+        ],
+        "emoji-toolbar": true,
+        "emoji-textarea": true,
+        "emoji-shortname": true,
+    };
+
+    return (
+        <div className="p-6 bg-dark-background-light rounded-lg text-white shadow-md max-w-3xl mx-auto">
+            {showSuccess && (
+                <div className="bg-green-500 text-white p-4 rounded-md mb-6 flex items-center">
+                    <FaCheckCircle className="mr-2" />
+                    Confession saved successfully!
+                </div>
+            )}
+            <form onSubmit={handlePostConfession}>
+                <div className="mb-6">
+                <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full p-2 rounded-md border border-gray-600 bg-gray-800 text-white focus:outline-none focus:bg-gray-600"
+                    required
+                    maxLength={100}
+                    placeholder="Title"
+                />
+                </div>
+                <div className="mb-16">
+                    <label className="block text-sm font-medium mb-2">Write your confession here...</label>
+                    
+                    <ReactQuill
+                        value={content}
+                        onChange={setContent}
+                        className="bg-dark-background-dark text-white"
+                        modules={quillModules}
+                        style={{ height: "100px" }} // Increased height for content area
+                        placeholder="Write your confession here..."
+                    />
+                </div>
+                <div className="mb-6">
+                    <label className="block text-sm font-medium mb-2">Categories</label>
+                    <Select
+                        isMulti
+                        value={selectedCategories}
+                        onChange={(selectedOptions) => setSelectedCategories(selectedOptions)}
+                        options={categories}
+                        styles={darkModeSelectStyles}
+                        className="bg-dark-background-dark"
+                        maxMenuHeight={150}
+                        isSearchable
+                        closeMenuOnSelect={false}
+                    />
+                    {selectedCategories.length > 5 && (
+                        <p className="text-red-500 text-sm mt-2">You can select up to 5 categories only.</p>
+                    )}
+                </div>
+                <div className="mb-6">
+                    <label className="block text-sm font-medium mb-2">Tags</label>
+                    <CreatableSelect
+                        isMulti
+                        value={selectedTags}
+                        onChange={(selectedOptions) => setSelectedTags(selectedOptions)}
+                        onCreateOption={handleCreateTag}
+                        options={tags}
+                        styles={darkModeSelectStyles}
+                        className="bg-dark-background-dark"
+                        maxMenuHeight={150}
+                        isSearchable
+                        closeMenuOnSelect={false}
+                    />
+                    {selectedTags.length > 5 && (
+                        <p className="text-red-500 text-sm mt-2">You can select up to 5 tags only.</p>
+                    )}
+                </div>
+                <div className="mb-6 flex items-center">
+                    <label className="block text-sm font-medium mb-2 mr-4">Post as Anonymous</label>
+                    <Switch
+                        onChange={() => setIsAnonymous(!isAnonymous)}
+                        checked={isAnonymous}
+                        onColor="#4ade80"
+                        offColor="#f87171"
+                    />
+                </div>
+                <div className="flex">
+                <div className="mb-6 flex items-center">
+                    <label className="block text-sm font-medium mb-2 mr-4">Show Age</label>
+                    <Switch
+                        onChange={() => setShowAge(!showAge)}
+                        checked={showAge}
+                        onColor="#4ade80"
+                        offColor="#f87171"
+                    />
+                </div>
+                {showAge && (
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium mb-2">Age</label>
+                        <input
+                            type="number"
+                            value={age}
+                            onChange={(e) => setAge(e.target.value)}
+                            className="w-full p-2 rounded-md border border-gray-600 bg-dark-background-dark text-white"
+                            maxLength={3}
+                        />
+                    </div>
+                )}
+                <div className="mb-6 flex items-center">
+                    <label className="block text-sm font-medium mb-2 mr-4">Show Location</label>
+                    <Switch
+                        onChange={() => setShowLocation(!showLocation)}
+                        checked={showLocation}
+                        onColor="#4ade80"
+                        offColor="#f87171"
+                    />
+                </div>
+                {showLocation && (
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium mb-2">Location</label>
+                        <input
+                            type="text"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            className="w-full p-2 rounded-md border border-gray-600 bg-dark-background-dark text-white"
+                            maxLength={50}
+                        />
+                    </div>
+                )}
+                <div className="mb-6 flex items-center">
+                    <label className="block text-sm font-medium mb-2 mr-4">Show Gender</label>
+                    <Switch
+                        onChange={() => setShowGender(!showGender)}
+                        checked={showGender}
+                        onColor="#4ade80"
+                        offColor="#f87171"
+                    />
+                </div>
+                {showGender && (
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium mb-2">Gender</label>
+                        <select
+                            value={gender}
+                            onChange={(e) => setGender(e.target.value)}
+                            className="w-full p-2 rounded-md border border-gray-600 bg-dark-background-dark text-white"
+                        >
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                )}
+                </div>
+                <div className="flex justify-between items-center">
+                    <button
+                        type="submit"
+                        className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+                        disabled={isPosting}
+                    >
+                        Post Confession
+                    </button>
+                    <button
+                        type="button"
+                        className="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 disabled:bg-gray-300"
+                        onClick={handleSaveDraft}
+                        disabled={isSaving}
+                    >
+                        Save Draft
+                    </button>
+                </div>
+            </form>
+            {showAuthModal && <p className="text-red-500">Please sign in to post a confession or save a draft.</p>}
         </div>
-      )}
-
-      <form onSubmit={handlePostConfession}>
-        <div className="mb-4">
-          <label htmlFor="title" className="block text-sm font-bold mb-2">
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            className="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:bg-gray-600"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            maxLength={100}
-            required
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="categories" className="block text-sm font-bold mb-2">
-            Categories
-          </label>
-          <Select
-            id="categories"
-            options={categories}
-            isMulti
-            value={selectedCategories}
-            onChange={setSelectedCategories}
-            styles={darkModeSelectStyles}
-            placeholder="Select categories..."
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="tags" className="block text-sm font-bold mb-2">
-            Tags
-          </label>
-          <CreatableSelect
-            id="tags"
-            options={tags}
-            isMulti
-            value={selectedTags}
-            onChange={setSelectedTags}
-            onCreateOption={handleCreateTag}
-            styles={darkModeSelectStyles}
-            placeholder="Select or create tags..."
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="content" className="block text-sm font-bold mb-2">
-            Content
-          </label>
-          <ReactQuill
-            id="content"
-            value={content}
-            onChange={setContent}
-            modules={quillModules}
-            className="bg-gray-700 text-white"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-bold mb-2">Post as Anonymous</label>
-          <Switch
-            onChange={() => setIsAnonymous(!isAnonymous)}
-            checked={isAnonymous}
-            className="react-switch"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-bold mb-2">Age</label>
-          <div className="flex items-center">
-            <input
-              type="number"
-              className="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:bg-gray-600"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              disabled={!showAge}
-              placeholder="Enter your age"
-            />
-            <Switch
-              onChange={() => setShowAge(!showAge)}
-              checked={showAge}
-              className="react-switch ml-3"
-            />
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-bold mb-2">Location</label>
-          <div className="flex items-center">
-            <input
-              type="text"
-              className="w-full px-3 py-2 rounded bg-gray-700 text-white focus:outline-none focus:bg-gray-600"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              disabled={!showLocation}
-              placeholder="Enter your location"
-            />
-            <Switch
-              onChange={() => setShowLocation(!showLocation)}
-              checked={showLocation}
-              className="react-switch ml-3"
-            />
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-bold mb-2">Gender</label>
-          <div className="flex items-center">
-            <Select
-              options={[
-                { value: "Male", label: "Male" },
-                { value: "Female", label: "Female" },
-                { value: "Other", label: "Other" },
-              ]}
-              value={{ value: gender, label: gender }}
-              onChange={(option) => setGender(option.value)}
-              isDisabled={!showGender}
-              styles={darkModeSelectStyles}
-              placeholder="Select your gender"
-            />
-            <Switch
-              onChange={() => setShowGender(!showGender)}
-              checked={showGender}
-              className="react-switch ml-3"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-between">
-          <button
-            type="button"
-            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            onClick={handleSaveDraft}
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving..." : "Save Draft"}
-          </button>
-          <button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            disabled={isPosting}
-          >
-            {isPosting ? "Posting..." : "Post Confession"}
-          </button>
-        </div>
-      </form>
-
-      {showAuthModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold mb-4">Authentication Required</h2>
-            <p className="mb-4">Please log in to post your confession.</p>
-            <button
-              onClick={() => setShowAuthModal(false)}
-              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    );
 };
 
 export default ConfessionForm;
