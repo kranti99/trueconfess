@@ -17,14 +17,6 @@ export const metadata = {
     locale: 'en_US',
     url: 'https://www.trueconfess.com/',
     site_name: 'True Confess',
-    // images: [
-    //   {
-    //     url: 'https://www.trueconfess.com/images/og-image.jpg',
-    //     width: 1200,
-    //     height: 630,
-    //     alt: 'True Confess',
-    //   }
-    // ],
   },
   keywords: ['confessions', 'anonymous confessions', 'secrets', 'share confessions', 'True Confess'],
   robots: {
@@ -40,25 +32,26 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <Head>
         <meta name="google-site-verification" content="YqBu1NmdPSIaYbA9gvZKILnfCH2CMUWMMcfgXJoPRu4" />
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-6LC27C3J8W"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-
-          gtag('config', 'G-6LC27C3J8W');
-        </script>
       </Head>
       <body className={inter.className}>
-      
         <Header />
-        
         <div className='relative flex justify-center'>
           <LeftSidebar />
           <main className="container max-w-3xl mx-4 px-0 py-12 md:px-4">{children}</main>
         </div>
         <div id="modal-root"></div>
         <Footer />
+
+        {/* Google Analytics */}
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-6LC27C3J8W"></Script>
+        <Script id="google-analytics">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-6LC27C3J8W');
+          `}
+        </Script>
       </body>
     </html>
   );
