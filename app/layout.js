@@ -40,18 +40,17 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <Head>
         <meta name="google-site-verification" content="YqBu1NmdPSIaYbA9gvZKILnfCH2CMUWMMcfgXJoPRu4" />
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-6LC27C3J8W"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-6LC27C3J8W');
+        </script>
       </Head>
       <body className={inter.className}>
-      {/* <Script async src="https://www.googletagmanager.com/gtag/js?id=G-6LC27C3J8W" />
-        <Script>
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-
-            gtag('config', 'G-6LC27C3J8W');
-          `}
-        </Script> */}
+      
         <Header />
         
         <div className='relative flex justify-center'>

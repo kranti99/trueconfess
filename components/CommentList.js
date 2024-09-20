@@ -4,13 +4,18 @@ import { collection, query, onSnapshot, deleteDoc, doc, setDoc, updateDoc } from
 import { db } from '/firebase';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import TimeAgo from './TimeAgo';
-import Avatar from 'react-avatar';
-import Modal from '@components/modal';
-import EditDropDown from './profile/EditDropDown';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { Heart, MessageCircle, MoreVertical, Edit, Trash2, Send, CheckCircle } from 'lucide-react'
 import parse from 'html-react-parser';
-import LikeButton from './LikeButton';
+import Modal from '@components/modal';
 import AuthForm from './AuthForm';
-import { FaCheckCircle, FaReply, FaPaperPlane } from 'react-icons/fa';
+import LikeButton from './LikeButton';
 
 import 'react-quill/dist/quill.bubble.css';
 import 'quill-emoji/dist/quill-emoji.css';
@@ -38,7 +43,6 @@ export default function CommentList({ confessionId }) {
   const [replyContent, setReplyContent] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState(null);
-  const [commenter, setCommenter] = useState('');
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -145,177 +149,193 @@ export default function CommentList({ confessionId }) {
     }));
   };
 
-  if (loading) return <p>Loading comments...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return <p className="text-gray-400">Loading comments...</p>;
+  if (error) return <p className="text-red-500">Error: {error}</p>;
 
   return (
-    <div className="space-y-4 dark-mode">
+    <div className="space-y-4 bg-gray-900 text-gray-100 p-4 rounded-lg">
       {showSuccessMessage && (
-        <div className="fixed bottom-0 right-0 m-4 p-4 bg-green-500 text-white rounded shadow-lg">
-          <FaCheckCircle className="inline mr-2" />
-          Comment posted successfully!
+        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg flex items-center space-x-2">
+          <CheckCircle className="w-5 h-5" />
+          <span>Comment posted successfully!</span>
         </div>
       )}
 
       {comments.map((comment) => (
-        <div key={comment.id} className={`comment-container ${comment.parentId ? 'ml-8' : ''}`}>
-          <div className="flex items-start space-x-4 mb-4">
-            <Avatar
-              name={comment.nickname}
-              src={comment.avatar || '/default-avatar.png'}
-              size={comment.parentId ? "30" : "40"}
-              round={true}
-            />
-            <div className="bg-dark-background-light w-fit px-2 py-1 pb-0 rounded-lg">
-              <p className="font-bold text-base mb-0">{comment.nickname}</p>
-              <div className="text-gray-300 comment-content">
-                {editingCommentId === comment.id ? (
+        <div key={comment.id} className={`${comment.parentId ? 'ml-4 pl-4 border-l border-gray-700' : ''}`}>
+          <div className="flex items-start space-x-3">
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={comment.avatar || '/default-avatar.png'} alt={comment.nickname} />
+              
+            </Avatar>
+            <div className="flex-grow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-semibold text-sm">{comment.nickname}</span>
+                  <span className="text-xs text-gray-400 ml-2">
+                    <TimeAgo timestamp={comment.date} />
+                  </span>
+                </div>
+                {user && user.uid === comment.userId && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-gray-800 text-gray-100">
+                      <DropdownMenuItem onClick={() => handleEdit(comment.id)} className="hover:bg-gray-700">
+                        <Edit className="mr-2 h-4 w-4" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        setCommentToDelete(comment.id);
+                        setIsModalOpen(true);
+                      }} className="hover:bg-gray-700">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span>Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+              {editingCommentId === comment.id ? (
+                <div className="mt-2">
                   <ReactQuill
                     value={editContent}
                     onChange={setEditContent}
                     modules={modules}
                     theme="bubble"
+                    className="bg-gray-800 text-gray-100 rounded"
                   />
-                ) : (
-                  parse(comment.content)
-                )}
-              </div>
-              {editingCommentId === comment.id && (
-                <div className="flex justify-end mt-2 space-x-2">
-                  <button
-                    onClick={() => setEditingCommentId(null)}
-                    className="bg-gray-300 text-gray-800 px-4 py-1 rounded hover:bg-gray-400"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleEditSubmit}
-                    className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
-                  >
-                    Save
-                  </button>
+                  <div className="flex justify-end mt-2 space-x-2">
+                    <Button variant="outline" size="sm" onClick={() => setEditingCommentId(null)}>
+                      Cancel
+                    </Button>
+                    <Button size="sm" onClick={handleEditSubmit}>
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-1 text-sm prose prose-invert max-w-none">
+                  {parse(comment.content)}
                 </div>
               )}
+              <div className="flex items-center space-x-4 mt-2 text-xs">
+                <LikeButton itemId={comment.id} itemType={`confessions/${confessionId}/comments`} />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-gray-400 hover:text-gray-100"
+                  onClick={() => {
+                    if (!user) {
+                      setIsAuthModalOpen(true);
+                    } else {
+                      setReplyTo(comment.id);
+                    }
+                  }}
+                >
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                  <span>Reply</span>
+                </Button>
+                {comment.parentId === null && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleReplies(comment.id)}
+                    className="h-6 px-2 text-gray-400 hover:text-gray-100"
+                  >
+                    {repliesVisible[comment.id] ? 'Hide Replies' : 'Show Replies'}
+                  </Button>
+                )}
+              </div>
             </div>
-            {user && user.uid === comment.userId && (
-              <EditDropDown
-                itemId={comment.id}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            )}
-          </div>
-          <div className="flex items-center space-x-4 text-sm text-gray-400">
-            <TimeAgo timestamp={comment.date} />
-            <LikeButton itemId={comment.id} itemType={`confessions/${confessionId}/comments`} />
-            <button
-              className="flex items-center space-x-1 text-gray-400 hover:text-white"
-              onClick={() => {
-                if (!user) {
-                  setIsAuthModalOpen(true);
-                } else {
-                  setReplyTo(comment.id);
-                }
-              }}
-            >
-              <FaReply />
-              <span>Reply</span>
-            </button>
           </div>
           {replyTo === comment.id && (
-            <div className="mt-4">
+            <div className="mt-4 ml-11">
               <ReactQuill
                 value={replyContent}
                 onChange={setReplyContent}
                 modules={modules}
                 theme="bubble"
                 placeholder="Write a reply..."
+                className="bg-gray-800 text-gray-100 rounded"
               />
-              <div className="flex justify-between mt-2">
-                <button
-                  onClick={handleReply}
-                  className="text-blue-500 hover:text-blue-600"
-                >
-                  <FaPaperPlane size={24} />
-                </button>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
+              <div className="flex justify-between items-center mt-2">
+                <Button onClick={handleReply} size="sm" className="text-blue-400 hover:text-blue-300">
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Reply
+                </Button>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`anonymous-${comment.id}`}
                     checked={isAnonymous}
-                    onChange={(e) => setIsAnonymous(e.target.checked)}
-                    className="form-checkbox h-4 w-4 text-blue-600"
+                    onCheckedChange={(checked) => setIsAnonymous(checked)}
                   />
-                  <span className="text-gray-400">Post as Anonymous</span>
-                </label>
+                  <Label htmlFor={`anonymous-${comment.id}`} className="text-sm text-gray-400">Post as Anonymous</Label>
+                </div>
               </div>
             </div>
           )}
           {repliesVisible[comment.id] && (
-            <div className="ml-8 mt-4">
+            <div className="mt-4 space-y-4">
               {comments
                 .filter((reply) => reply.parentId === comment.id)
                 .map((reply) => (
-                  <div key={reply.id} className="flex items-start space-x-4 mb-4">
-                    <Avatar
-                      name={reply.nickname}
-                      src={reply.avatar || '/default-avatar.png'}
-                      size="30"
-                      round={true}
-                    />
-                    <div className="bg-dark-background-light w-fit px-2 py-1 pb-0 rounded-lg min-w-32">
-                      <p className="font-bold text-base mb-0">{reply.nickname}</p>
-                      <div className="text-gray-300 comment-content">{parse(reply.content)}</div>
+                  <div key={reply.id} className="ml-8 pl-4 border-l border-gray-700">
+                    <div className="flex items-start space-x-3">
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src={reply.avatar || '/default-avatar.png'} alt={reply.nickname} />
+                        <AvatarFallback>{reply.nickname.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-grow">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-semibold text-sm">{reply.nickname}</span>
+                            <span className="text-xs text-gray-400 ml-2">
+                              <TimeAgo timestamp={reply.date} />
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-1 text-sm prose prose-invert max-w-none">
+                          {parse(reply.content)}
+                        </div>
+                      </div>
                     </div>
-                    {user && user.uid === reply.userId && (
-                      <EditDropDown
-                        itemId={reply.id}
-                        onEdit={() => handleEdit(reply.id)}
-                        onDelete={() => {
-                          setCommentToDelete(reply.id);
-                          setIsModalOpen(true);
-                        }}
-                      />
-                    )}
                   </div>
                 ))}
             </div>
           )}
+          <Separator className="my-4 bg-gray-700" />
         </div>
       ))}
 
-      {!user && (
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={() => setIsAuthModalOpen(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Login to comment
-          </button>
-        </div>
-      )}
-
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <div>
+        <div className="bg-gray-800 text-gray-100 p-6 rounded-lg">
+          <h3 className="text-lg font-semibold mb-4">Delete Comment</h3>
           <p>Are you sure you want to delete this comment?</p>
           <div className="flex justify-end space-x-2 mt-4">
-            <button
+            <Button
               onClick={() => setIsModalOpen(false)}
-              className="bg-gray-300 text-gray-800 px-4 py-1 rounded hover:bg-gray-400"
+              variant="outline"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => handleDelete(commentToDelete)}
-              className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
+              variant="destructive"
             >
               Delete
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
 
       <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)}>
-        <AuthForm mode={authMode} setMode={setAuthMode} onAuthSuccess={() => setIsAuthModalOpen(false)} />
+        <div className="bg-gray-800 text-gray-100 p-6 rounde d-lg">
+          <AuthForm mode={authMode} setMode={setAuthMode} onAuthSuccess={() => setIsAuthModalOpen(false)} />
+        </div>
       </Modal>
     </div>
   );
