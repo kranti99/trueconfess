@@ -68,9 +68,9 @@ const ConfessionForm = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [authUser, setAuthUser] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showAge, setShowAge] = useState(true);
-  const [showLocation, setShowLocation] = useState(true);
-  const [showGender, setShowGender] = useState(true);
+  const [showAge, setShowAge] = useState(false);
+  const [showLocation, setShowLocation] = useState(false);
+  const [showGender, setShowGender] = useState(false);
 
   const auth = getAuth();
 
@@ -249,25 +249,20 @@ const ConfessionForm = () => {
 
   const quillModules = {
     toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      ['link', 'image'],
       ['clean'],
       ['emoji'],
     ],
-    "emoji-toolbar": true,
+    "emoji-toolbar": false,
     "emoji-textarea": true,
     "emoji-shortname": true,
   };
 
   return (
-    <div className="bg-black min-h-screen p-4">
-      <Card className="w-full max-w-4xl mx-auto bg-[#2a2a2a] text-white">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Share Your Confession</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen p-4">
+      <Card className="w-full max-w-4xl mx-auto bg-[#2a2a2a] text-white border-none">
+        <CardContent className="pt-6">
           {showSuccess && (
             <div className="bg-green-500 text-white p-4 rounded-md mb-6 flex items-center">
               <CheckCircle className="mr-2" />
@@ -284,7 +279,7 @@ const ConfessionForm = () => {
                 required
                 maxLength={100}
                 placeholder="Enter your confession title"
-                className="bg-[#2a2a2a] text-white"
+                className="bg-[#2a2a2a] text-white border-[#5c5c5c]"
               />
             </div>
             <div>
@@ -294,7 +289,7 @@ const ConfessionForm = () => {
                 value={content}
                 onChange={setContent}
                 modules={quillModules}
-                className="bg-[#2a2a2a] text-white h-32 mb-4"
+                className="bg-[#2a2a2a] text-white mb-4 border-[#5c5c5c]"
                 placeholder="Write your confession here..."
               />
             </div>
@@ -308,7 +303,7 @@ const ConfessionForm = () => {
                   onChange={(selectedOptions) => setSelectedCategories(selectedOptions)}
                   options={categories}
                   styles={selectStyles}
-                  className="react-select-container"
+                  className="react-select-container border-[#5c5c5c]"
                   classNamePrefix="react-select"
                   placeholder="Select categories"
                 />
@@ -335,6 +330,7 @@ const ConfessionForm = () => {
                   id="anonymous"
                   checked={isAnonymous}
                   onCheckedChange={() => setIsAnonymous(!isAnonymous)}
+                  className="data-[state=checked]:bg-[#494949] data-[state=unchecked]:bg-[#181818]"
                 />
                 <Label htmlFor="anonymous">Post as Anonymous</Label>
               </div>
@@ -343,40 +339,75 @@ const ConfessionForm = () => {
                   id="showAge"
                   checked={showAge}
                   onCheckedChange={() => setShowAge(!showAge)}
+                  className="data-[state=checked]:bg-[#494949] data-[state=unchecked]:bg-[#181818]"
                 />
-                <Label htmlFor="showAge">Show Age</Label>
+                <Label htmlFor="showAge">{showAge ? "Hide Age" : "Show Age"}</Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="showLocation"
-                  checked={showLocation}
-                  onCheckedChange={() => setShowLocation(!showLocation)}
-                />
-                <Label htmlFor="showLocation">Show Location</Label>
-              </div>
+              
+              
               <div className="flex items-center space-x-2">
                 <Switch
                   id="showGender"
                   checked={showGender}
                   onCheckedChange={() => setShowGender(!showGender)}
+                  className="data-[state=checked]:bg-[#494949] data-[state=unchecked]:bg-[#181818]"
                 />
-                <Label htmlFor="showGender">Show Gender</Label>
+
+                <Label htmlFor="showGender">{showGender ? "Hide Gender" : "Show Gender"}</Label>
               </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="showLocation"
+                  checked={showLocation}
+                  onCheckedChange={() => setShowLocation(!showLocation)}
+                  className="data-[state=checked]:bg-[#494949] data-[state=unchecked]:bg-[#181818]"
+                />
+                <Label htmlFor="showLocation">{showLocation ? "Hide Location" : "Show Location"}</Label>
+              </div>
+              
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {showAge && (
-              <div>
+              <div >
                 <Label htmlFor="age">Age</Label>
-                <Input
+                <select
                   id="age"
-                  type="number"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  maxLength={3}
-                  placeholder="Enter your age"
-                  className="bg-[#2a2a2a] text-white"
-                />
+                  className="w-full p-2 rounded-md border bg-[#2a2a2a] text-white mb-0"
+                >
+                  <option value="">Select your age</option>
+                  {/* Start the options from age 10 */}
+                  {Array.from({ length: 91 }, (_, index) => (
+                    <option key={index + 10} value={index + 10}>
+                      {index + 10}
+                    </option>
+                  ))}
+                </select>
+
+              </div>
+            
+            )}
+            
+            {showGender && (
+              <div>
+                <Label htmlFor="gender">Gender</Label>
+                <select
+                  id="gender"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="w-full p-2 rounded-md border bg-[#2a2a2a] text-white mb-0"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
             )}
+            </div>
+            
             {showLocation && (
               <div>
                 <Label htmlFor="location">Location</Label>
@@ -386,24 +417,8 @@ const ConfessionForm = () => {
                   onChange={(e) => setLocation(e.target.value)}
                   maxLength={50}
                   placeholder="Enter your location"
-                  className="bg-[#2a2a2a] text-white"
+                  className="bg-[#2a2a2a] text-white mb-0"
                 />
-              </div>
-            )}
-            {showGender && (
-              <div>
-                <Label htmlFor="gender">Gender</Label>
-                <select
-                  id="gender"
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                  className="w-full p-2 rounded-md border bg-[#2a2a2a] text-white"
-                >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
               </div>
             )}
           </form>

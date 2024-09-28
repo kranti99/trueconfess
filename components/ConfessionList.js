@@ -12,9 +12,20 @@ import { Heart, MessageCircle, Eye, MapPin, User, Calendar, ChevronDown } from "
 import LoadingSpinner from "./LoadingSpinner";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
+import parse from 'html-react-parser';
+
 
 // Dynamic imports for avatar and time-ago
 const TimeAgo = dynamic(() => import("./TimeAgo"), { ssr: false });
+
+// Utility function to strip HTML tags
+const stripHtml = (content) => content.replace(/<\/?[^>]+(>|$)/g, "");
+
+// Utility function to get an excerpt
+const getExcerpt = (content, wordLimit) => {
+  const words = content.split(' ');
+  return words.length > wordLimit ? `${words.slice(0, wordLimit).join(' ')}...` : content;
+};
 
 export default function ConfessionList() {
   const [confessions, setConfessions] = useState([]);
@@ -108,7 +119,7 @@ export default function ConfessionList() {
               <option value="mostRecent">Most Recent</option>
               <option value="mostCommented">Most Commented</option>
             </select>
-            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <ChevronDown className="absolute right-2 top-6 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
         </motion.div>
       </div>
@@ -128,87 +139,119 @@ export default function ConfessionList() {
           >
             <Link href={`/confession/${confession.id}`} className="block group no-underline" onClick={() => incrementViews(confession.id)}>
               <Card className="bg-[#2a2a2a] border-gray-700 transition-all duration-300 group-hover:bg-[#333333] group-hover:shadow-lg h-full flex flex-col transform group-hover:scale-102">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center space-x-4">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Link href={`/author/${confession.nickname}`} className="block no-underline">
-                            <Avatar className="w-14 h-14 border-2 border-[#45d754] transition-all duration-300 group-hover:border-[#4a9eff] shadow-lg">
-                              <AvatarImage src={confession.avatar || "/default-avatar.png"} alt={confession.nickname} />
-                              <AvatarFallback>{confession.nickname.slice(0, 2)}</AvatarFallback>
-                            </Avatar>
-                          </Link>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>View {confession.nickname}'s profile</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <div>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Link href={`/author/${confession.nickname}`} className="font-semibold text-sm text-[#45d754] transition-colors duration-300 hover:text-[#4a9eff] no-underline">
-                              {confession.nickname}
-                            </Link>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>View author's profile</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <p className="text-xs text-gray-400 flex items-center mt-1">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        <TimeAgo timestamp={confession.date} />
-                      </p>
+              <CardHeader className="pb-4">
+                <div className="flex items-start space-x-4">
+                  {/* Avatar and Nickname */}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link href={`/author/${confession.nickname}`} className="block no-underline">
+                          <Avatar className="w-14 h-14 border-2 border-[#45d754] rounded-full transition-all duration-300 group-hover:border-[#4a9eff] shadow-lg">
+                            <AvatarImage src={confession.avatar || "/default-avatar.png"} alt={confession.nickname} />
+                            <AvatarFallback>{confession.nickname.slice(0, 2)}</AvatarFallback>
+                          </Avatar>
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>View {confession.nickname}'s profile</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  {/* Nickname, Location, Gender, Age, and Date */}
+                  <div className="flex-1">
+                    <div className="flex items-center mb-1">
+                      {/* Nickname */}
+                      <div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link href={`/author/${confession.nickname}`} className="font-semibold text-base text-[#45d754] transition-colors duration-300 hover:text-[#4a9eff] no-underline">
+                                {confession.nickname}
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>View author's profile</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      
+                      {/* Date */}
+                      <div className="text-xs text-gray-400 ml-6">
+                        <span className="flex items-center">
+                          <Calendar className="w-4 h-4 mr-1" />
+                          <TimeAgo timestamp={confession.date} />
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Location, Gender, Age */}
+                    <div className="text-xs text-gray-400 space-x-4 flex items-center mt-1">
+                      {/* Location */}
+                      {confession.location && (
+                        <span className="flex items-center">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {confession.location}
+                        </span>
+                      )}
+
+                      {/* Gender and Age */}
+                      {confession.gender && (
+                        <span className="flex items-center">
+                          <User className="w-3 h-3 mr-1" />
+                          {confession.gender}{confession.gender && confession.age && <span>,&nbsp;</span>} {confession.age && <span>{confession.age}</span>}
+                        </span>
+                      )}
+                        
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="flex-grow">
+                </div>
+              </CardHeader>
+
+                <CardContent className="flex-grow pb-3">
                   <h2 className="text-2xl font-bold mb-3 text-[#4a9eff] transition-colors duration-300">{confession.title}</h2>
-                  <div className="flex items-center space-x-4 text-xs text-gray-400 mb-3">
-                    <span className="flex items-center">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      {confession.location}
-                    </span>
-                    <span className="flex items-center">
-                      <User className="w-3 h-3 mr-1" />
-                      {confession.gender}, {confession.age} years old
-                    </span>
+                  <div className="text-sm text-gray-300 mb-4 overflow-hidden main-content">
+                      
+                    <div className="text-gray-300 text-sm leading-relaxed">
+                        {parse(stripHtml(getExcerpt(confession.content, 120)))}
+                    </div>
                   </div>
-                  <div 
-                    className="text-sm text-gray-300 mb-4 overflow-hidden"
-                    dangerouslySetInnerHTML={{ __html: confession.content }}
-                  />
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    
-                     {confession.categories && confession.categories.map((category, index) => (
-                      <Link key={index} href={`/category/${category}`} className="block no-underline" ><Badge variant="outline" className="bg-[#4a9eff] text-[#1c1c1c] transition-colors duration-300">
-                        {category}
-                      </Badge></Link>
-                    ))}
-                    {confession.tags && confession.tags.map((tag, index) => (
-                      <Link key={index} href={`/tag/${tag}`} className="block no-underline" ><Badge variant="outline" className="text-gray-300 bg-[#3a3a3a] transition-colors duration-300">
-                        {tag}
-                      </Badge></Link>
-                    ))}
-                  </div>
+
+                  {(confession.categories?.length > 0 || confession.tags?.length > 0) && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {confession.categories && confession.categories.map((category, index) => (
+                        <Link key={index} href={`/category/${category}`} className="block no-underline">
+                          <Badge variant="outline" className="bg-[#4a9eff] text-[#1c1c1c] transition-colors duration-300">
+                            {category}
+                          </Badge>
+                        </Link>
+                      ))}
+                      {confession.tags && confession.tags.map((tag, index) => (
+                        <Link key={index} href={`/tag/${tag}`} className="block no-underline">
+                          <Badge variant="outline" className="text-gray-300 bg-[#3a3a3a] transition-colors duration-300">
+                            {tag}
+                          </Badge>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
                 </CardContent>
-                <CardFooter className="flex justify-between items-center pt-3 border-t border-gray-700">
+                <CardFooter className="flex justify-between items-center pt-3 pb-3 border-t border-gray-700">
                   <div className="flex items-center justify-between text-sm text-gray-400">
-                    <span className="flex items-center space-x-2 group">
+                    <div className="flex items-center space-x-2 mr-16 group">
                       <Heart className="w-5 h-5 group-hover:text-red-500 transition-colors duration-300" />
                       <span className="group-hover:text-red-500 transition-colors duration-300">{confession.likes}</span>
-                    </span>
-                    <span className="flex items-center space-x-2 group">
+                    </div>
+                    <div className="flex items-center space-x-2 mr-16 group">
                       <MessageCircle className="w-5 h-5 group-hover:text-[#4a9eff] transition-colors duration-300" />
                       <span className="group-hover:text-[#4a9eff] transition-colors duration-300">{confession.commentCount}</span>
-                    </span>
-                    <span className="flex items-center space-x-2 group">
+                    </div>
+                    <div className="flex items-center space-x-2 group">
                       <Eye className="w-5 h-5 group-hover:text-[#45d754] transition-colors duration-300" />
                       <span className="group-hover:text-[#45d754] transition-colors duration-300">{confession.views}</span>
-                    </span>
+                    </div>
                   </div>
                 </CardFooter>
               </Card>
