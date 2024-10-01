@@ -92,7 +92,7 @@ export default function ConfessionList() {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="container mx-auto md:p-4 text-gray-300 min-h-screen">
+    <div className="container mx-auto md:p-0 text-gray-300 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}

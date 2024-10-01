@@ -272,7 +272,7 @@ const ConfessionForm = () => {
               <CheckCircle className="mr-2" />
               Confession saved successfully!
             </div>
-          )}
+          )}/45
           <form onSubmit={handlePostConfession} className="space-y-6">
             <div>
               <Label htmlFor="title">Title</Label>
