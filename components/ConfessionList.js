@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Heart, MessageCircle, Eye, MapPin, User, Calendar, ChevronDown } from "lucide-react";
+import { Heart, MessageSquare, Eye, MapPin, User, Calendar, ChevronDown } from "lucide-react";
 import LoadingSpinner from "./LoadingSpinner";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
@@ -92,13 +92,13 @@ export default function ConfessionList() {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="container mx-auto p-4 text-gray-300 min-h-screen">
+    <div className="container mx-auto md:p-4 text-gray-300 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-3xl font-bold mb-4 md:mb-0"
+          className="text-2xl md:text-3xl font-bold mb-4 mt-4 md:mb-0"
         >
           Confessions
         </motion.h1>
@@ -109,17 +109,17 @@ export default function ConfessionList() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="flex items-center space-x-4"
         >
-          <span className="text-gray-400">Sort by:</span>
+          <span className="text-gray-400 text-sm">Sort by:</span>
           <div className="relative">
             <select
               value={sortType}
               onChange={handleSortChange}
-              className="appearance-none p-2 pr-8 border border-gray-600 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4a9eff]"
+              className="appearance-none p-3 pt-1 pb-1 pr-8 mb-0 border border-gray-600 bg-gray-800 text-sm text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4a9eff]"
             >
               <option value="mostRecent">Most Recent</option>
               <option value="mostCommented">Most Commented</option>
             </select>
-            <ChevronDown className="absolute right-2 top-6 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <ChevronDown className="absolute right-2 top-4 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
         </motion.div>
       </div>
@@ -128,7 +128,7 @@ export default function ConfessionList() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="grid gap-8 md:grid-cols-1"
+        className="grid gap-4 md:gap-8 md:grid-cols-1"
       >
         {sortedConfessions.map((confession, index) => (
           <motion.div
@@ -138,7 +138,7 @@ export default function ConfessionList() {
             transition={{ duration: 0.5, delay: index * 0.1 }}
           >
             <Link href={`/confession/${confession.id}`} className="block group no-underline" onClick={() => incrementViews(confession.id)}>
-              <Card className="bg-[#2a2a2a] border-gray-700 transition-all duration-300 group-hover:bg-[#333333] group-hover:shadow-lg h-full flex flex-col transform group-hover:scale-102">
+              <Card className="rounded-none md:rounded-xl bg-[#2a2a2a] border-gray-700 transition-all duration-300 group-hover:bg-[#333333] group-hover:shadow-lg h-full flex flex-col transform group-hover:scale-102">
               <CardHeader className="pb-4">
                 <div className="flex items-start space-x-4">
                   {/* Avatar and Nickname */}
@@ -180,7 +180,7 @@ export default function ConfessionList() {
                       {/* Date */}
                       <div className="text-xs text-gray-400 ml-6">
                         <span className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-1" />
+                          <Calendar className="w-3 h-3 mr-1" />
                           <TimeAgo timestamp={confession.date} />
                         </span>
                       </div>
@@ -209,12 +209,12 @@ export default function ConfessionList() {
                 </div>
               </CardHeader>
 
-                <CardContent className="flex-grow pb-3">
+                <CardContent className="flex-grow md:pb-3 pb-0">
                   <h2 className="text-2xl font-bold mb-3 text-[#4a9eff] transition-colors duration-300">{confession.title}</h2>
                   <div className="text-sm text-gray-300 mb-4 overflow-hidden main-content">
                       
-                    <div className="text-gray-300 text-sm leading-relaxed">
-                        {parse(stripHtml(getExcerpt(confession.content, 120)))}
+                    <div className="text-gray-300 text-base leading-relaxed">
+                        {parse(stripHtml(getExcerpt(confession.content, 60)))}
                     </div>
                   </div>
 
@@ -245,7 +245,7 @@ export default function ConfessionList() {
                       <span className="group-hover:text-red-500 transition-colors duration-300">{confession.likes}</span>
                     </div>
                     <div className="flex items-center space-x-2 mr-16 group">
-                      <MessageCircle className="w-5 h-5 group-hover:text-[#4a9eff] transition-colors duration-300" />
+                      <MessageSquare className="w-5 h-5 group-hover:text-[#4a9eff] transition-colors duration-300" />
                       <span className="group-hover:text-[#4a9eff] transition-colors duration-300">{confession.commentCount}</span>
                     </div>
                     <div className="flex items-center space-x-2 group">

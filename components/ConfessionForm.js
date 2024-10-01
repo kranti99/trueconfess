@@ -126,7 +126,11 @@ const ConfessionForm = () => {
       setShowAuthModal(true);
       return;
     }
-
+      // Check if title or content are empty
+    if (title.trim() === "" || content.trim() === "") {
+      alert("Title and content are required to post a confession.");
+      return;
+    }
     if (selectedCategories.length > 5 || selectedTags.length > 5) {
       alert("You can select up to 5 categories and 5 tags only.");
       return;

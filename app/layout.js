@@ -37,7 +37,7 @@ export default function RootLayout({ children }) {
         <Header />
         <div className='relative flex justify-center'>
           <LeftSidebar />
-          <main className="container max-w-3xl mx-4 px-0 py-12 md:px-4">{children}</main>
+          <main className="container max-w-3xl md:mx-4 px-0 md:py-12 md:px-4">{children}</main>
         </div>
         <div id="modal-root"></div>
         <Footer />
