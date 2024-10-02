@@ -86,12 +86,12 @@ const SearchComponent = () => {
         <input
           type="text"
           placeholder="Search"
-          className="bg-dark-background text-white px-4 py-2 pl-10 rounded-full w-full border border-gray-700"
+          className="bg-dark-background text-white px-4 py-2 pl-10 rounded-full w-full border border-gray-700 mb-0"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => setShowResults(true)}
         />
-        <FaSearch className="absolute left-3 transform -translate-y-1/2 text-white" style={{'top':'38%'}}/>
+        <FaSearch className="absolute left-3 transform -translate-y-1/2 text-white" style={{'top':'48%'}}/>
       </div>
       {isSearching && (
         <div className="absolute top-12 bg-gray-800 text-white w-full rounded shadow-lg p-2">

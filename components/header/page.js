@@ -58,83 +58,92 @@ export default function Header() {
 
   return (
     <div>
-    <header
-      className={`bg-dark-background-light text-white relative top-0 w-full z-50 shadow-lg transition-transform duration-300 ${
-        isVisible ? 'transform translate-y-0' : 'transform -translate-y-full'
-      }`}
-    >
-      <div className="container mx-auto px-4 py-2 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/" className="text-xl mb:text-2xl font-bold text-red-600">
-            TrueConfess
-          </Link>
-        </div>
-        <div className="flex-1 mx-4">
-          <SearchComponent />
-        </div>
-        <nav className="flex items-center space-x-4">
-          {user ? (
-            <div className="relative">
-              <FaUserCircle
-                aria-label="User Menu"
-                className="text-2xl cursor-pointer hover:text-gray-400"
-                onClick={() => setShowDropdown(!showDropdown)}
-              />
-              {showDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg">
-                  <Link
-                    href="/profile"
-                    className="block px-4 py-2 hover:bg-gray-200"
-                  >
-                    View Profile
-                  </Link>
+      <header
+        className={`bg-dark-background-light text-white relative top-0 w-full z-50 shadow-lg transition-transform duration-300 ${
+          isVisible ? 'transform translate-y-0' : 'transform -translate-y-full'
+        }`}
+      >
+        <div className="container mx-auto px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Link href="/" className="text-lg md:text-2xl font-bold text-red-600">
+              TrueConfess
+            </Link>
+          </div>
+          <div className="flex-1 mx-4">
+            <SearchComponent />
+          </div>
+          <nav className="flex items-center space-x-4">
+            {user ? (
+              <div className="relative">
+                <FaUserCircle
+                  aria-label="User Menu"
+                  className="text-2xl cursor-pointer hover:text-gray-400"
+                  onClick={() => setShowDropdown(!showDropdown)}
+                />
+                {showDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg">
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 hover:bg-gray-200"
+                    >
+                      View Profile
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-200"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                {/* Combined Login/Signup button for mobile */}
+                <div className="block md:hidden">
                   <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-200"
+                    aria-label="Login/Signup"
+                    onClick={() => {
+                      setAuthMode(authMode === 'login' ? 'signup' : 'login');
+                      setShowAuthForm(true);
+                    }}
+                    className="bg-red-600 px-2 py-1 rounded text-sm hover:bg-red-700"
                   >
-                    Logout
+                    {authMode === 'login' ? 'Login' : 'Sign Up'}
                   </button>
                 </div>
-              )}
-            </div>
-          ) : (
-            <>
-              <button
-                aria-label="Login"
-                onClick={() => {
-                  setAuthMode('login');
-                  setShowAuthForm(true);
-                }}
-                className="hover:text-gray-400"
-              >
-                Login
-              </button>
-              <button
-                aria-label="Sign Up"
-                onClick={() => {
-                  setAuthMode('signup');
-                  setShowAuthForm(true);
-                }}
-                className="bg-red-600 px-3 py-1 rounded hover:bg-red-700"
-              >
-                Sign Up
-              </button>
-            </>
-          )}
-        </nav>
-      </div>
-      <div>
-      
-      </div>
-    </header>
-    {showAuthForm && (
-       
-            <AuthForm 
-              closeModal={closeModal} 
-              mode={authMode} 
-              setMode={setAuthMode} 
-            />
-       
+
+                {/* Separate buttons for larger screens */}
+                <div className="hidden md:flex space-x-4">
+                  <button
+                    aria-label="Login"
+                    onClick={() => {
+                      setAuthMode('login');
+                      setShowAuthForm(true);
+                    }}
+                    className="hover:text-gray-400"
+                  >
+                    Login
+                  </button>
+                  <button
+                    aria-label="Sign Up"
+                    onClick={() => {
+                      setAuthMode('signup');
+                      setShowAuthForm(true);
+                    }}
+                    className="bg-red-600 px-3 py-1 rounded hover:bg-red-700"
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              </>
+            )}
+          </nav>
+        </div>
+      </header>
+
+      {showAuthForm && (
+        <AuthForm closeModal={closeModal} mode={authMode} setMode={setAuthMode} />
       )}
     </div>
   );

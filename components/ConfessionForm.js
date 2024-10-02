@@ -267,12 +267,7 @@ const ConfessionForm = () => {
     <div className="min-h-screen p-4">
       <Card className="w-full max-w-4xl mx-auto bg-[#2a2a2a] text-white border-none">
         <CardContent className="pt-6">
-          {showSuccess && (
-            <div className="bg-green-500 text-white p-4 rounded-md mb-6 flex items-center">
-              <CheckCircle className="mr-2" />
-              Confession saved successfully!
-            </div>
-          )}/45
+          
           <form onSubmit={handlePostConfession} className="space-y-6">
             <div>
               <Label htmlFor="title">Title</Label>
@@ -452,6 +447,12 @@ const ConfessionForm = () => {
             <p>Please sign in to post a confession or save a draft.</p>
           </div>
         )}
+        {showSuccess && (
+            <div className="bg-green-500 text-white p-4 rounded-md mb-6 flex items-center">
+              <CheckCircle className="mr-2" />
+              Confession saved successfully!
+            </div>
+          )}
       </Card>
     </div>
   );
