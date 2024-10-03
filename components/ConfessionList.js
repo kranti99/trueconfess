@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
-import { collection, getDocs, doc, updateDoc, increment, getDoc, setDoc, deleteField } from "firebase/firestore"
+import { collection, getDocs, doc, updateDoc, increment, getDoc, setDoc, deleteField, query, orderBy, limit, startAfter, Timestamp } from "firebase/firestore"
 import { db } from "/firebase"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -13,6 +13,7 @@ import LoadingSpinner from "./LoadingSpinner"
 import dynamic from "next/dynamic"
 import { motion, AnimatePresence } from "framer-motion"
 import parse from 'html-react-parser'
+import { useInView } from 'react-intersection-observer'
 
 const TimeAgo = dynamic(() => import("./TimeAgo"), { ssr: false })
 
@@ -29,41 +30,92 @@ export default function ConfessionList() {
   const [loading, setLoading] = useState(true)
   const [userLikes, setUserLikes] = useState({})
   const [likedConfession, setLikedConfession] = useState(null)
+  const [lastVisible, setLastVisible] = useState(null)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
 
-  useEffect(() => {
-    const fetchConfessions = async () => {
-      try {
-        const confessionSnapshot = await getDocs(collection(db, "confessions"))
-        const confessionData = confessionSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
+  const { ref, inView } = useInView({
+    threshold: 0,
+  })
 
-        const userSnapshot = await getDocs(collection(db, "users"))
-        const userData = userSnapshot.docs.reduce((acc, doc) => {
-          acc[doc.id] = doc.data()
-          return acc
-        }, {})
-
-        const mergedData = confessionData.map((confession) => {
-          const user = userData[confession.userId] || {}
-          return {
-            ...confession,
-            avatar: user.avatar,
-            nickname: user.nickname || 'Anonymous',
-          }
-        })
-
-        setConfessions(mergedData)
-      } catch (error) {
-        console.error("Error fetching confessions: ", error)
-      } finally {
-        setLoading(false)
-      }
+  const fetchConfessions = useCallback(async (lastDoc = null) => {
+    console.log('fetchConfessions called with lastDoc:', lastDoc?.id)
+    if (loadingMore) {
+      console.log('Already loading more, returning')
+      return
     }
 
+    setLoadingMore(true)
+    try {
+      let confessionQuery = query(
+        collection(db, "confessions"),
+        orderBy(sortType === 'mostRecent' ? 'date' : 'commentCount', 'desc'),
+        limit(10)
+      )
+
+      if (lastDoc) {
+        confessionQuery = query(
+          confessionQuery,
+          startAfter(lastDoc)
+        )
+      }
+
+      const confessionSnapshot = await getDocs(confessionQuery)
+      const confessionData = confessionSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        date: doc.data().date instanceof Timestamp ? doc.data().date.toDate() : new Date(doc.data().date)
+      }))
+
+      console.log('Fetched confessions:', confessionData.length)
+
+      const userSnapshot = await getDocs(collection(db, "users"))
+      const userData = userSnapshot.docs.reduce((acc, doc) => {
+        acc[doc.id] = doc.data()
+        return acc
+      }, {})
+
+      const mergedData = confessionData.map((confession) => {
+        const user = userData[confession.userId] || {}
+        return {
+          ...confession,
+          avatar: user.avatar,
+          nickname: user.nickname || 'Anonymous',
+        }
+      })
+
+      setConfessions(prev => {
+        const newConfessions = lastDoc ? [...prev, ...mergedData] : mergedData
+        console.log('Updated confessions:', newConfessions.length)
+        return newConfessions
+      })
+
+      const newLastVisible = confessionSnapshot.docs[confessionSnapshot.docs.length - 1]
+      console.log('New lastVisible:', newLastVisible ? newLastVisible.id : 'null')
+      setLastVisible(newLastVisible)
+
+      const newHasMore = confessionSnapshot.docs.length === 10
+      console.log('Setting hasMore:', newHasMore)
+      setHasMore(newHasMore)
+    } catch (error) {
+      console.error("Error fetching confessions: ", error)
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
+    }
+  }, [sortType])
+
+  useEffect(() => {
     fetchConfessions()
-  }, [])
+  }, [fetchConfessions])
+
+  useEffect(() => {
+    console.log('Scroll effect triggered:', { inView, hasMore, loading, loadingMore, lastVisible: lastVisible?.id })
+    if (inView && hasMore && !loading && !loadingMore) {
+      console.log('Fetching more confessions')
+      fetchConfessions(lastVisible)
+    }
+  }, [inView, hasMore, loading, loadingMore, fetchConfessions, lastVisible])
 
   useEffect(() => {
     const fetchUserLikes = async () => {
@@ -79,17 +131,13 @@ export default function ConfessionList() {
     fetchUserLikes()
   }, [])
 
-  const sortConfessions = useCallback((confessions, type) => {
-    if (type === 'mostRecent') {
-      return confessions.sort((a, b) => b.date - a.date)
-    } else if (type === 'mostCommented') {
-      return confessions.sort((a, b) => b.commentCount - a.commentCount)
-    }
-    return confessions
-  }, [])
-
   const handleSortChange = (event) => {
     setSortType(event.target.value)
+    setConfessions([])
+    setLastVisible(null)
+    setHasMore(true)
+    setLoading(true)
+    fetchConfessions()
   }
 
   const incrementViews = async (confessionId) => {
@@ -169,9 +217,7 @@ export default function ConfessionList() {
     }
   }
 
-  if (loading) return <LoadingSpinner />
-
-  const sortedConfessions = sortConfessions([...confessions], sortType)
+  if (loading && confessions.length === 0) return <LoadingSpinner />
 
   return (
     <div className="container mx-auto md:p-0 text-gray-300 min-h-screen">
@@ -211,7 +257,7 @@ export default function ConfessionList() {
         transition={{ duration: 0.5, delay: 0.4 }}
         className="grid gap-4 md:gap-8 md:grid-cols-1"
       >
-        {sortedConfessions.map((confession, index) => (
+        {confessions.map((confession, index) => (
           <motion.div
             key={confession.id}
             initial={{ opacity: 0, y: 20 }}
@@ -361,6 +407,11 @@ export default function ConfessionList() {
           </motion.div>
         ))}
       </motion.div>
+      {(hasMore || loadingMore) && (
+        <div ref={ref} className="flex justify-center mt-8">
+          <LoadingSpinner />
+        </div>
+      )}
     </div>
   )
 }

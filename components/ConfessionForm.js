@@ -6,7 +6,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { addDoc, collection, serverTimestamp, getDocs, doc, setDoc } from "firebase/firestore";
 import { db } from "/firebase";
 import { CheckCircle, AlertCircle, Send, Save, Eye, EyeOff } from 'lucide-react';
-import "react-quill/dist/quill.snow.css";
+import 'react-quill/dist/quill.bubble.css'
 import "quill-emoji/dist/quill-emoji.css";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
@@ -265,7 +265,7 @@ const ConfessionForm = () => {
 
   return (
     <div className="min-h-screen p-4">
-      <Card className="w-full max-w-4xl mx-auto bg-[#2a2a2a] text-white border-none">
+      <Card className="w-full max-w-4xl mx-auto bg-[#2a2a2a] text-white border-none confession-form">
         <CardContent className="pt-6">
           
           <form onSubmit={handlePostConfession} className="space-y-6">
@@ -290,6 +290,7 @@ const ConfessionForm = () => {
                 modules={quillModules}
                 className="bg-[#2a2a2a] text-white mb-4 border-[#5c5c5c]"
                 placeholder="Write your confession here..."
+                theme="bubble"
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

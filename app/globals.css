@@ -283,3 +283,10 @@ textarea {
     @apply bg-background text-foreground;
   }
 }
+
+.single-content h2, .single-content h3, .single-content h4, .single-content h5{
+  font-size: 18px;
+}
+.confession-form .quill{
+  background: #2a2a2a !important
+}

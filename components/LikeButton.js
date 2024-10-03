@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FaThumbsUp } from 'react-icons/fa';
+import { Heart } from 'lucide-react'
+
 import { doc, updateDoc, increment, deleteField, getDoc } from 'firebase/firestore';
 import { db } from '/firebase';
 import { getAuth } from 'firebase/auth';
@@ -51,10 +52,15 @@ const LikeButton = ({ itemId, itemType }) => {
 
   return (
     <button
-      className={`flex items-center space-x-1 ${liked ? 'text-blue-500' : 'text-gray-400'} hover:text-white`}
+      className={`flex items-center space-x-1 ${liked ? 'text-red-500' : 'text-gray-400'} hover:text-red-700`}
       onClick={handleLike}
     >
-      <FaThumbsUp />
+      <Heart 
+        className={`w-4 h-4 transition-all duration-300 ${liked
+            ? 'text-red-500 fill-red-500' 
+            : 'text-gray-400 fill-transparent group-hover:text-red-500'
+        }`} 
+      />
       <span>{likes}</span>
     </button>
   );
