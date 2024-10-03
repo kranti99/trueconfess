@@ -288,7 +288,7 @@ const ConfessionForm = () => {
                 value={content}
                 onChange={setContent}
                 modules={quillModules}
-                className="bg-[#2a2a2a] text-white mb-4 border-[#5c5c5c]"
+                className="bg-[#2a2a2a] text-white mb-4 border-[#5c5c5c] h-24 rounded-lg"
                 placeholder="Write your confession here..."
                 theme="bubble"
               />
@@ -326,12 +326,21 @@ const ConfessionForm = () => {
             </div>
             <div className="flex flex-wrap gap-6">
               <div className="flex items-center space-x-2">
-                <Switch
-                  id="anonymous"
-                  checked={isAnonymous}
-                  onCheckedChange={() => setIsAnonymous(!isAnonymous)}
-                  className="data-[state=checked]:bg-[#494949] data-[state=unchecked]:bg-[#181818]"
-                />
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Switch
+                        id="anonymous"
+                        checked={isAnonymous}
+                        onCheckedChange={() => setIsAnonymous(!isAnonymous)}
+                        className="data-[state=checked]:bg-[#494949] data-[state=unchecked]:bg-[#181818]"
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {isAnonymous ? 'No' : 'Yes'}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <Label htmlFor="anonymous">Post as Anonymous</Label>
               </div>
               <div className="flex items-center space-x-2">

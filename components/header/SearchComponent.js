@@ -113,9 +113,9 @@ const SearchComponent = () => {
             >
               <FaRegCommentDots className="text-gray-400 mr-2" />
               <div className="flex-1">
-                <div className="font-semibold">{result.title}</div>
-                <div className="text-sm text-gray-400">
-                  {stripHtml(result.content).length > 60 ? stripHtml(result.content).substring(0, 60) + '...' : stripHtml(result.content)}
+                <div className="font-semibold break-all">{result.title}</div>
+                <div className="text-sm text-gray-400 break-all">
+                  {stripHtml(result.content).length > 40 ? stripHtml(result.content).substring(0, 40) + '...' : stripHtml(result.content)}
                 </div>
               </div>
             </div>

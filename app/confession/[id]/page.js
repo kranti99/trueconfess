@@ -214,9 +214,9 @@ export default function ConfessionDetail({ params }) {
             </CardHeader>
 
             <CardContent className="flex-grow pb-3">
-              <h2 className="text-xl md:text-2xl font-bold mb-3 text-[#4a9eff] transition-colors duration-300">{confession.title}</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-3 text-[#4a9eff] transition-colors duration-300 break-all">{confession.title}</h2>
               <div className="text-sm text-gray-300 mb-4 overflow-hidden main-content">
-                <div className="text-gray-300 text-sm md:text-base leading-relaxed single-content">
+                <div className="text-gray-300 text-sm md:text-base leading-relaxed single-content break-all">
                   {parse(confession.content)}
                 </div>
               </div>

@@ -330,9 +330,9 @@ export default function ConfessionList() {
                 </CardHeader>
 
                 <CardContent className="flex-grow md:pb-3 pb-0">
-                  <h2 className="text-xl md:text-2xl font-bold mb-3 text-[#4a9eff] transition-colors duration-300">{confession.title}</h2>
+                  <h2 className="text-xl md:text-2xl font-bold mb-3 text-[#4a9eff] transition-colors duration-300 break-all">{confession.title}</h2>
                   <div className="text-sm text-gray-300 mb-4 overflow-hidden main-content">
-                    <div className="text-gray-300 text-sm md:text-base leading-relaxed">
+                    <div className="text-gray-300 text-sm md:text-base leading-relaxed break-all">
                       {parse(stripHtml(getExcerpt(confession.content, 60)))}
                     </div>
                   </div>

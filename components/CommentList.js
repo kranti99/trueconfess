@@ -234,243 +234,249 @@ export default function CommentList({ confessionId }) {
   if (error) return <p className="text-red-500">Error: {error}</p>
 
   return (
-    <div className="space-y-4 bg-[#2a2a2a] text-gray-100 p-4 rounded-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Comments</h2>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="latest">Latest</SelectItem>
-            <SelectItem value="relevant">Most Relevant</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {showSuccessMessage && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg flex items-center space-x-2">
-          <CheckCircle className="w-5 h-5" />
-          <span>Comment posted successfully!</span>
+    <>
+    {comments.length > 0 ? (
+      <div className="space-y-4 bg-[#2a2a2a] text-gray-100 p-4 rounded-lg">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Comments</h2>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="latest">Latest</SelectItem>
+              <SelectItem value="relevant">Most Relevant</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      )}
 
-      {comments.map((comment) => (
-        <div key={comment.id} className="mb-4">
-          <div className="flex items-start space-x-3">
-            <Avatar className="w-8 h-8">
-              <AvatarImage src={comment.avatar || '/default-avatar.png'} alt={comment.nickname} />
-              <AvatarFallback>{comment.nickname.slice(0, 2)}</AvatarFallback>
-            </Avatar>
-            <div className="flex-grow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="font-semibold text-sm">{comment.nickname}</span>
-                  <span className="text-xs text-gray-400 ml-2">
-                    <TimeAgo timestamp={comment.date} />
-                  </span>
-                </div>
-                {user && user.uid === comment.userId && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-dark-background hover:text-white">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-dark-background text-gray-100">
-                      <DropdownMenuItem onClick={() => handleEdit(comment.id, comment.content)} className="hover:bg-gray-700">
-                        <Edit className="mr-2 h-4 w-4" />
-                        <span>Edit</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => {
-                        setCommentToDelete(comment.id)
-                        setIsModalOpen(true)
-                      }} className="hover:bg-gray-700">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        <span>Delete</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
-              {editingCommentId === comment.id ? (
-                <div className="mt-2">
-                  <ReactQuill
-                    value={editContent}
-                    onChange={setEditContent}
-                    modules={modules}
-                    theme="bubble"
-                    className="bg-gray-800 text-gray-100 rounded"
-                  />
-                  <div className="flex justify-end mt-2 space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => setEditingCommentId(null)}>
-                      Cancel
-                    </Button>
-                    <Button size="sm" onClick={handleEditSubmit}>
-                      Save
-                    </Button>
+        {showSuccessMessage && (
+          <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg flex items-center space-x-2">
+            <CheckCircle className="w-5 h-5" />
+            <span>Comment posted successfully!</span>
+          </div>
+        )}
+
+        {comments.map((comment) => (
+          <div key={comment.id} className="mb-4">
+            <div className="flex items-start space-x-3">
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={comment.avatar || '/default-avatar.png'} alt={comment.nickname} />
+                <AvatarFallback>{comment.nickname.slice(0, 2)}</AvatarFallback>
+              </Avatar>
+              <div className="flex-grow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold text-sm">{comment.nickname}</span>
+                    <span className="text-xs text-gray-400 ml-2">
+                      <TimeAgo timestamp={comment.date} />
+                    </span>
                   </div>
+                  {user && user.uid === comment.userId && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-dark-background hover:text-white">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-dark-background text-gray-100">
+                        <DropdownMenuItem onClick={() => handleEdit(comment.id, comment.content)} className="hover:bg-gray-700">
+                          <Edit className="mr-2 h-4 w-4" />
+                          <span>Edit</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setCommentToDelete(comment.id)
+                          setIsModalOpen(true)
+                        }} className="hover:bg-gray-700">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
-              ) : (
-                <div className="mt-1 text-sm prose prose-invert max-w-none">
-                  {parse(comment.content)}
-                </div>
-              )}
-              <div className="flex items-center space-x-4 mt-2 text-xs">
-                <LikeButton itemId={comment.id} itemType={`confessions/${confessionId}/comments`} />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-gray-400 hover:text-gray-100 hover:bg-dark-background"
-                  onClick={() => {
-                    if (!user) {
-                      setIsAuthModalOpen(true)
-                    } else {
-                      setReplyTo(comment.id)
-                    }
-                  }}
-                >
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  <span>Reply</span>
-                </Button>
-                {comment.replyCount > 0 && (
+                {editingCommentId === comment.id ? (
+                  <div className="mt-2">
+                    <ReactQuill
+                      value={editContent}
+                      onChange={setEditContent}
+                      modules={modules}
+                      theme="bubble"
+                      className="bg-gray-800 text-gray-100 rounded"
+                    />
+                    <div className="flex justify-end mt-2 space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => setEditingCommentId(null)}>
+                        Cancel
+                      </Button>
+                      <Button size="sm" onClick={handleEditSubmit}>
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-1 text-sm prose prose-invert max-w-none">
+                    {parse(comment.content)}
+                  </div>
+                )}
+                <div className="flex items-center space-x-4 mt-2 text-xs">
+                  <LikeButton itemId={comment.id} itemType={`confessions/${confessionId}/comments`} />
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => toggleReplies(comment.id)}
-                    className="h-6 px-2 text-gray-400 hover:text-gray-100 hover:bg-dark-background	"
+                    className="h-6 px-2 text-gray-400 hover:text-gray-100 hover:bg-dark-background"
+                    onClick={() => {
+                      if (!user) {
+                        setIsAuthModalOpen(true)
+                      } else {
+                        setReplyTo(comment.id)
+                      }
+                    }}
                   >
-                    {repliesVisible[comment.id] ? 'Hide Replies' : `Show Replies (${comment.replyCount})`}
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    <span>Reply</span>
                   </Button>
-                )}
+                  {comment.replyCount > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleReplies(comment.id)}
+                      className="h-6 px-2 text-gray-400 hover:text-gray-100 hover:bg-dark-background	"
+                    >
+                      {repliesVisible[comment.id] ? 'Hide Replies' : `Show Replies (${comment.replyCount})`}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          {replyTo === comment.id && (
-            <div className="mt-4 ml-11">
-              <ReactQuill
-                value={replyContent}
-                onChange={setReplyContent}
-                modules={modules}
-                theme="bubble"
-                placeholder="Write a reply..."
-                className="bg-gray-800 text-gray-100 rounded"
-              />
-              <div className="flex justify-end items-center mt-2">
-                <Button onClick={handleReply} size="sm" className="text-white hover:text-blue-300">
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Reply
-                </Button>
+            {replyTo === comment.id && (
+              <div className="mt-4 ml-11">
+                <ReactQuill
+                  value={replyContent}
+                  onChange={setReplyContent}
+                  modules={modules}
+                  theme="bubble"
+                  placeholder="Write a reply..."
+                  className="bg-gray-800 text-gray-100 rounded"
+                />
+                <div className="flex justify-end items-center mt-2">
+                  <Button onClick={handleReply} size="sm" className="text-white hover:text-blue-300">
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Reply
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-          {repliesVisible[comment.id] && comment.replies && (
-            <div className="mt-4 space-y-4 ml-8">
-              {comment.replies.map((reply) => (
-                <div key={reply.id} className="pl-4 border-l border-gray-700">
-                  <div className="flex items-start space-x-3">
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src={reply.avatar || '/default-avatar.png'} alt={reply.nickname} />
-                      <AvatarFallback>{reply.nickname.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-grow">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="font-semibold text-sm">{reply.nickname}</span>
-                          <span className="text-xs text-gray-400 ml-2">
-                            <TimeAgo timestamp={reply.date} />
-                          </span>
+            )}
+            {repliesVisible[comment.id] && comment.replies && (
+              <div className="mt-4 space-y-4 ml-8">
+                {comment.replies.map((reply) => (
+                  <div key={reply.id} className="pl-4 border-l border-gray-700">
+                    <div className="flex items-start space-x-3">
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src={reply.avatar || '/default-avatar.png'} alt={reply.nickname} />
+                        <AvatarFallback>{reply.nickname.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-grow">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-semibold text-sm">{reply.nickname}</span>
+                            <span className="text-xs text-gray-400 ml-2">
+                              <TimeAgo timestamp={reply.date} />
+                            </span>
+                          </div>
+                          {user && user.uid === reply.userId && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-dark-background hover:text-white">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-dark-background text-gray-100">
+                                <DropdownMenuItem onClick={() => handleEdit(reply.id, reply.content)} className="hover:bg-gray-700">
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  <span>Edit</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setCommentToDelete(reply.id)
+                                  setIsModalOpen(true)
+                                }} className="hover:bg-gray-700">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  <span>Delete</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </div>
-                        {user && user.uid === reply.userId && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-dark-background hover:text-white">
-                                <MoreVertical className="h-4 w-4" />
+                        {editingCommentId === reply.id ? (
+                          <div className="mt-2">
+                            <ReactQuill
+                              value={editContent}
+                              onChange={setEditContent}
+                              modules={modules}
+                              theme="bubble"
+                              className="bg-gray-800 text-gray-100 rounded"
+                            />
+                            <div className="flex justify-end mt-2 space-x-2">
+                              <Button variant="outline" size="sm" onClick={() => setEditingCommentId(null)}>
+                                Cancel
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-dark-background text-gray-100">
-                              <DropdownMenuItem onClick={() => handleEdit(reply.id, reply.content)} className="hover:bg-gray-700">
-                                <Edit className="mr-2 h-4 w-4" />
-                                <span>Edit</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                setCommentToDelete(reply.id)
-                                setIsModalOpen(true)
-                              }} className="hover:bg-gray-700">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Delete</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                              <Button size="sm" onClick={handleEditSubmit}>
+                                Save
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-1 text-sm prose prose-invert max-w-none">
+                            {parse(reply.content)}
+                          </div>
                         )}
                       </div>
-                      {editingCommentId === reply.id ? (
-                        <div className="mt-2">
-                          <ReactQuill
-                            value={editContent}
-                            onChange={setEditContent}
-                            modules={modules}
-                            theme="bubble"
-                            className="bg-gray-800 text-gray-100 rounded"
-                          />
-                          <div className="flex justify-end mt-2 space-x-2">
-                            <Button variant="outline" size="sm" onClick={() => setEditingCommentId(null)}>
-                              Cancel
-                            </Button>
-                            <Button size="sm" onClick={handleEditSubmit}>
-                              Save
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="mt-1 text-sm prose prose-invert max-w-none">
-                          {parse(reply.content)}
-                        </div>
-                      )}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-          <Separator className="my-4 bg-gray-700" />
-        </div>
-      ))}
+                ))}
+              </div>
+            )}
+            <Separator className="my-4 bg-gray-700" />
+          </div>
+        ))}
 
-      {hasMore && (
-        <div className="flex justify-center mt-4">
-          <Button onClick={loadMoreComments} variant="outline">
-            Load More Comments
-          </Button>
-        </div>
-      )}
-
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="bg-dark-background">
-        <div className=" text-gray-100 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">Delete Comment</h3>
-          <p>Are you sure you want to delete this comment?</p>
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button
-              onClick={() => setIsModalOpen(false)}
-              variant="outline" className="bg-dark-background"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => handleDelete(commentToDelete)}
-              variant="destructive"
-            >
-              Delete
+        {hasMore && (
+          <div className="flex justify-center mt-4">
+            <Button onClick={loadMoreComments} variant="outline">
+              Load More Comments
             </Button>
           </div>
-        </div>
-      </Modal>
+        )}
 
-      <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)}>
-        <div className="bg-gray-800 text-gray-100 p-6 rounded-lg">
-          <AuthForm mode={authMode} setMode={setAuthMode} onAuthSuccess={() => setIsAuthModalOpen(false)} />
-        </div>
-      </Modal>
-    </div>
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="bg-dark-background">
+          <div className=" text-gray-100 rounded-lg">
+            <h3 className="text-lg font-semibold mb-4">Delete Comment</h3>
+            <p>Are you sure you want to delete this comment?</p>
+            <div className="flex justify-end space-x-2 mt-4">
+              <Button
+                onClick={() => setIsModalOpen(false)}
+                variant="outline" className="bg-dark-background"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => handleDelete(commentToDelete)}
+                variant="destructive"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)}>
+          <div className="bg-gray-800 text-gray-100 p-6 rounded-lg">
+            <AuthForm mode={authMode} setMode={setAuthMode} onAuthSuccess={() => setIsAuthModalOpen(false)} />
+          </div>
+        </Modal>
+      </div>
+ ) : (
+  <p className="text-gray-400">No comments yet.</p>
+)}
+ </>
   )
 }
