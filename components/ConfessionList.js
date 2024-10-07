@@ -81,6 +81,7 @@ export default function ConfessionList() {
           ...confession,
           avatar: user.avatar,
           nickname: user.nickname || 'Anonymous',
+          uid: user.uid
         }
       })
 
@@ -266,13 +267,14 @@ export default function ConfessionList() {
             className="relative"
           >
             <Link href={`/confession/${confession.id}`} className="block group no-underline" onClick={() => incrementViews(confession.id)}>
-              <Card className="rounded-none md:rounded-xl bg-[#2a2a2a] border-gray-700 transition-all duration-300 group-hover:bg-[#333333] group-hover:shadow-lg h-full flex flex-col transform group-hover:scale-102">
-                <CardHeader className="pb-4">
+            <Card className="rounded-none md:rounded-xl bg-[#2a2a2a] border-gray-700 transition-all duration-200 ease-in-out group-hover:shadow-lg group-hover:shadow-black/60 group-hover:bg-[#303030] h-full flex flex-col transform">
+
+            <CardHeader className="pb-4">
                   <div className="flex items-start space-x-4">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Link href={`/author/${confession.nickname}`} className="block no-underline">
+                          <Link href={`/profile/${confession.uid}`} className="block no-underline">
                             <Avatar className="w-14 h-14 border-2 border-[#45d754] rounded-full transition-all duration-300 group-hover:border-[#4a9eff] shadow-lg">
                               <AvatarImage src={confession.avatar || "/default-avatar.png"} alt={confession.nickname} />
                               <AvatarFallback>{confession.nickname.slice(0, 2)}</AvatarFallback>
@@ -291,7 +293,7 @@ export default function ConfessionList() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Link href={`/author/${confession.nickname}`} className="font-semibold text-base text-[#45d754] transition-colors duration-300 hover:text-[#4a9eff] no-underline">
+                                <Link href={`/profile/${confession.uid}`} className="font-semibold text-base text-[#45d754] transition-colors duration-300 hover:text-[#4a9eff] no-underline">
                                   {confession.nickname}
                                 </Link>
                               </TooltipTrigger>
@@ -341,7 +343,7 @@ export default function ConfessionList() {
                     <div className="flex flex-wrap gap-2 mb-3">
                       {confession.categories && confession.categories.map((category, index) => (
                         <Link key={index} href={`/category/${category}`} className="block no-underline">
-                          <Badge variant="outline" className="bg-[#4a9eff] text-[#1c1c1c] transition-colors duration-300">
+                          <Badge variant="outline" className="bg-[#4a9eff] text-[#1c1c1c] transition-colors duration-100 hover:bg-[#2d80e1]">
                             {category}
                           </Badge>
                         </Link>

@@ -33,9 +33,9 @@ const LeftSidebar = () => {
     setShowAuthForm(false);
   };
 
-  const truncatedDisplayName = user?.displayName?.length > 8 
-    ? `${user.displayName.slice(0, 8)}...` 
-    : user?.displayName;
+  const truncatedDisplayName = user?.nickname?.length > 8 
+    ? `${user.nickname.slice(0, 8)}...` 
+    : user?.nickname;
 
   return (
     <aside className="bg-dark-background border-r-2 border-white text-white md:w-24 md:h-screen md:p-8 md:fixed md:top-0 md:left-0 md:flex md:flex-col md:items-center md:justify-center w-full fixed bottom-0 p-4 flex justify-center md:justify-start items-center space-x-8 md:space-x-0 md:space-y-8 z-40">

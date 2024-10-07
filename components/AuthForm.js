@@ -9,9 +9,28 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 import { db } from '/firebase';
+
+// Utility function to handle Firebase error messages consistently
+const getFirebaseErrorMessage = (errorCode) => {
+  switch (errorCode) {
+    case 'auth/popup-blocked':
+      return 'Popup blocked by your browser. Please allow popups and try again.';
+    case 'auth/email-already-in-use':
+      return 'This email is already in use. Please use a different email or log in.';
+    case 'auth/wrong-password':
+      return 'Incorrect password. Please try again.';
+    case 'auth/user-not-found':
+      return 'No user found with this email. Please sign up first.';
+    default:
+      return 'An unexpected error occurred. Please try again.';
+  }
+};
 
 export default function AuthForm({ closeModal, mode, setMode }) {
   const [email, setEmail] = useState('');
@@ -22,29 +41,35 @@ export default function AuthForm({ closeModal, mode, setMode }) {
 
   const auth = getAuth();
   const googleProvider = new GoogleAuthProvider();
+  const router = useRouter();
 
   // Predefined avatars list
-  const avatars = [
-    '/avatars/male1.png',
-    '/avatars/male2.png',
-    '/avatars/female1.png',
-    '/avatars/female2.png',
-  ];
+  const avatars = Array.from({ length: 105 }, (_, i) => `/avatars/bust/peep-${i + 1}.svg`);
 
   // Function to generate a random nickname
-  const generateRandomNickname  = async () => {
+  const generateRandomNickname = async () => {
     let nickname;
+    let attempts = 5;
     let docSnap;
-  
+
+    const adjectives = [
+      "Cool", "Swift", "Mighty", "Brave", "Quick", "Fierce", "Gentle", "Bold", "Clever", "Sharp",
+      "Wise", "Lucky", "Fearless", "Calm", "Wild", "Energetic", "Daring", "Epic", "Silent", "Loyal"
+    ];
+    const animals = [
+      "Lion", "Eagle", "Shark", "Panther", "Tiger", "Wolf", "Falcon", "Bear", "Fox", "Hawk",
+      "Jaguar", "Leopard", "Raven", "Stallion", "Puma", "Cobra", "Dragon", "Phoenix", "Griffin", "Rhino"
+    ];
+
     do {
-      const adjectives = ["Cool", "Swift", "Mighty", "Brave", "Quick"];
-      const animals = ["Lion", "Eagle", "Shark", "Panther", "Tiger"];
-      nickname = `${adjectives[Math.floor(Math.random() * adjectives.length)]}${animals[Math.floor(Math.random() * animals.length)]}`;
-  
+      const randomNumber = Math.floor(Math.random() * 1000);
+      nickname = `${adjectives[Math.floor(Math.random() * adjectives.length)]}${animals[Math.floor(Math.random() * animals.length)]}${randomNumber}`;
+
       const docRef = doc(db, 'users', nickname);
       docSnap = await getDoc(docRef);
-    } while (docSnap.exists());
-  
+      attempts--;
+    } while (docSnap.exists() && attempts > 0);
+
     return nickname;
   };
 
@@ -57,10 +82,19 @@ export default function AuthForm({ closeModal, mode, setMode }) {
     try {
       await signInWithPopup(auth, googleProvider);
       setMessage('Login via Google successful! Redirecting...');
-      setTimeout(() => closeModal(), 1500); // Close modal after showing success message
+      closeModal(); // Close modal after showing success message
     } catch (error) {
-      setIsError(true);
-      setMessage(error.message);
+      if (error.code === 'auth/popup-blocked') {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (redirectError) {
+          setIsError(true);
+          setMessage(`Firebase: ${getFirebaseErrorMessage(redirectError.code)}`);
+        }
+      } else {
+        setIsError(true);
+        setMessage(`Firebase: ${getFirebaseErrorMessage(error.code)}`);
+      }
     }
   };
 
@@ -68,16 +102,16 @@ export default function AuthForm({ closeModal, mode, setMode }) {
     e.preventDefault();
     setMessage('');
     setIsError(false);
-  
+
     try {
       if (mode === 'signup') {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const randomNickname = await generateRandomNickname(); // Ensure to await the nickname generation
+        const randomNickname = await generateRandomNickname();
         const randomAvatar = getRandomAvatar();
-  
+
         // Update profile with random nickname and avatar
         await updateProfile(userCredential.user, { displayName: randomNickname, photoURL: randomAvatar });
-  
+
         // Save user data to Firestore
         await setDoc(doc(db, 'users', userCredential.user.uid), {
           uid: userCredential.user.uid,
@@ -85,19 +119,25 @@ export default function AuthForm({ closeModal, mode, setMode }) {
           avatar: randomAvatar,
           email: userCredential.user.email,
         });
-  
-        setMessage('Sign up successful! Redirecting...');
+
+        // Send email verification
+        await sendEmailVerification(userCredential.user);
+
+        setMessage('Sign up successful! Please verify your email. Redirecting to profile edit...');
+
+        // Redirect to edit profile page after signup
+        closeModal();
+        router.push(`/edit-profile/${userCredential.user.uid}`);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         setMessage('Login successful! Redirecting...');
+        closeModal(); // Close modal after showing success message
       }
-      setTimeout(() => closeModal(), 1500); // Close modal after showing success message
     } catch (error) {
       setIsError(true);
-      setMessage(error.message);
+      setMessage(`Firebase: ${getFirebaseErrorMessage(error.code)}`);
     }
   };
-  
 
   const handlePasswordReset = async (e) => {
     e.preventDefault();
@@ -150,7 +190,7 @@ export default function AuthForm({ closeModal, mode, setMode }) {
             {mode === 'signup' && (
               <input
                 type="text"
-                value={generateRandomNickname()} // Generate and show random nickname (user won't see it)
+                value="Generating random nickname..." // Generate and show random nickname (user won't see it)
                 disabled
                 className="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white placeholder-gray-400"
                 aria-label="Username"
@@ -177,9 +217,9 @@ export default function AuthForm({ closeModal, mode, setMode }) {
             <button
               type="submit"
               className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-              aria-label={mode === 'signup' ? 'Sign Up' : 'Login'}
+              aria-label="Sign Up"
             >
-              {mode === 'signup' ? 'Sign Up' : 'Login'}
+              Sign Up
             </button>
           </form>
         )}
@@ -206,6 +246,19 @@ export default function AuthForm({ closeModal, mode, setMode }) {
               ? "Don't have an account? Sign up here"
               : 'Back to Login'}
           </button>
+        )}
+
+        {mode === 'login' && !showEmailForm && (
+          <p className="mt-4 text-gray-400">
+            Don't have an account?{' '}
+            <button
+              onClick={() => setMode('signup')}
+              className="text-blue-400 hover:text-blue-500"
+              aria-label="Sign up"
+            >
+              Sign up here
+            </button>
+          </p>
         )}
 
         {message && (

@@ -1,0 +1,92 @@
+"use client"
+
+import { useEffect, useState } from "react";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "/firebase"; // Your Firebase config
+
+export default function MyConfessionList({ user, avatar, nickname }) {
+  const [confessions, setConfessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalViews, setTotalViews] = useState(0);
+  const [totalLikes, setTotalLikes] = useState(0);
+
+  useEffect(() => {
+    const fetchUserConfessions = async () => {
+      if (!user?.uid) return;
+
+      setLoading(true);
+      try {
+        const q = query(
+          collection(db, "confessions"),
+          where("userId", "==", user.uid)
+        );
+        const querySnapshot = await getDocs(q);
+
+        let fetchedConfessions = [];
+        let viewsCount = 0;
+        let likesCount = 0;
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          fetchedConfessions.push({ id: doc.id, ...data });
+
+          // Increment total views and likes
+          viewsCount += data.views || 0;
+          likesCount += data.likes || 0;
+        });
+
+        setConfessions(fetchedConfessions);
+        setTotalViews(viewsCount);
+        setTotalLikes(likesCount);
+      } catch (error) {
+        console.error("Error fetching confessions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserConfessions();
+  }, [user]);
+
+  if (loading) return <p>Loading confessions...</p>;
+
+  return (
+    <div className="my-confession-list">
+      <div className="profile-info flex items-center mb-4">
+        <img
+          src={avatar || "/placeholder.svg?height=80&width=80"}
+          alt="User Avatar"
+          className="w-20 h-20 rounded-full object-cover"
+        />
+        <h1 className="text-2xl font-bold ml-4">{nickname || "User"}</h1>
+      </div>
+
+      <div className="stats flex justify-between mb-6">
+        <div className="text-center">
+          <p className="text-2xl font-bold">{totalViews}</p>
+          <p className="text-sm text-gray-400">Total Views</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold">{totalLikes}</p>
+          <p className="text-sm text-gray-400">Total Likes</p>
+        </div>
+      </div>
+
+      <h2 className="text-lg font-semibold mb-4">My Confessions</h2>
+      {confessions.length > 0 ? (
+        confessions.map((confession) => (
+          <div key={confession.id} className="confession-item mb-4">
+            <h3 className="text-xl">{confession.title}</h3>
+            <p>{confession.content}</p>
+            <div className="text-gray-400">
+              <span>{confession.views} views</span> |{" "}
+              <span>{confession.likes} likes</span>
+            </div>
+          </div>
+        ))
+      ) : (
+        <p>No confessions posted yet.</p>
+      )}
+    </div>
+  );
+}

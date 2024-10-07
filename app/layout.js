@@ -18,7 +18,7 @@ export const metadata = {
     url: 'https://www.trueconfess.com/',
     site_name: 'True Confess',
   },
-  keywords: ['confessions', 'anonymous confessions', 'secrets', 'share confessions', 'True Confess'],
+  keywords: ['confessions', 'anonymous confessions', 'secrets', 'share confessions', 'True Confessions'],
   robots: {
     index: true,
     follow: true,
