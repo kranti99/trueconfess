@@ -1,6 +1,6 @@
 import ConfessionForm from '@components/ConfessionForm';
 
-const ConfessionPage = () => {
+const PostConfessionPage = () => {
   return (
     <div>
       <h1 className="text-3xl font-bold text-center mb-8 mt-6">Post Your Confession</h1>
@@ -9,4 +9,4 @@ const ConfessionPage = () => {
   );
 };
 
-export default ConfessionPage;
+export default PostConfessionPage;
